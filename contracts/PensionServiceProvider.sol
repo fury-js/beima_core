@@ -2,26 +2,32 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 import './CTokenInterface.sol';
 import './ComptrollerInterface.sol';
 import './PriceOracleInterface.sol';
-
-
-// import "./XendFinanceIndividual_Yearn_V1.sol";
+import "./XendFinanceInterface.sol";
 
 
 
 
 contract PensionServiceProvider is KeeperCompatibleInterface {
     using SafeMath for uint;
+    using Counters for Counters.Counter;
+
+    // variables
     ComptrollerInterface public comptroller;
 	PriceOracleInterface public priceOracle;
-    // XendFinanceIndividual_Yearn_V1 public xendFinance;
+    Counters.Counter private id;
+
+    uint accXendTokens;
+    XendFinanceInterface public xendFinance;
+    IERC20 public xend;
 
 
-    IERC20 public busd;
+    
     // bool upKeep;
 
 
@@ -34,7 +40,6 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
         string  userDetails;
         uint256 depositedAmount;
         uint256 amountToSpend;
-        uint256 approvedAmountToSpend;
         uint256 startTime;
         uint256 timeDurationOfdeposit;
         uint256 lockTime;
@@ -54,33 +59,32 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
     User[] public users;
 
 
-    constructor(address _stableCoin, address _comptroller, address _priceOracle )  {
-        busd = IERC20(_stableCoin);
-        // xendFinance = XendFinanceIndividual_Yearn_V1(_xendFinanceAddress);
+    constructor(address _xend, address _xendFinanceIndividual_Yearn_V1,  address _comptroller, address _priceOracle )  {
+        xend = IERC20(_xend);
         comptroller = ComptrollerInterface(_comptroller);
 		priceOracle = PriceOracleInterface(_priceOracle);
+        xendFinance = XendFinanceInterface(_xendFinanceIndividual_Yearn_V1);
+
+        id.increment();
         
     }
 
     function register(
-        uint256 _id, 
         address _underlyingAsset,
         string memory _userDetails, 
         uint256 _amountToSpend,
-        uint256 _approvedAmountToSpend,  
         uint256 _timeDurationOfDeposit
         ) 
         public {
         require(!isRegistered[msg.sender], "Caller address already exists");
 
         User memory user = User({
-            id: _id,
+            id: id.current(),
             userAddress: payable(msg.sender),
             underlyingAsset: _underlyingAsset,
             userDetails: _userDetails,
             depositedAmount: 0,
             amountToSpend: _amountToSpend,
-            approvedAmountToSpend: _approvedAmountToSpend,
             startTime: block.timestamp,
             timeDurationOfdeposit: block.timestamp + _timeDurationOfDeposit,
             lockTime: 0
@@ -90,7 +94,9 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
         users.push(user);
         isRegistered[msg.sender] = true;
 
-        emit Register(msg.sender, user.userDetails, user.approvedAmountToSpend, user.lockTime);
+        id.increment();
+
+        emit Register(msg.sender, user.userDetails, user.amountToSpend, user.lockTime);
     }
 
 
@@ -264,5 +270,43 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
         User storage user = pensionServiceApplicant[msg.sender];
         require(user.lockTime == 0, "Caller already has a lock Time Set");
         user.lockTime = block.timestamp + _lockTime;
+    }
+
+
+
+    // for Xend
+
+    function getXendPendingRewards(address _user) public view returns(uint) {
+        User storage user = pensionServiceApplicant[_user];
+        uint256 accXendRewards = xendFinance.GetMemberXendTokenReward(address(this));
+        uint256 userPendingRewards = user.depositedAmount.mul(accXendRewards).div(1e8);
+
+        return userPendingRewards;
+    }
+
+
+
+    function depositToXendFinance(uint _amount) public {
+        require(isRegistered[msg.sender], "Caller not Registered");
+        User storage user = pensionServiceApplicant[msg.sender];
+        xendFinance.deposit();
+        user.depositedAmount = user.depositedAmount.add(_amount);
+
+        emit Deposit(msg.sender, user.depositedAmount);
+        
+    }
+
+
+
+    function withdrawFromXendFinance() public {
+        require(isRegistered[msg.sender], "Caller not Registered");
+        User storage user = pensionServiceApplicant[msg.sender];
+        xendFinance.withdraw(user.depositedAmount);
+        uint256 xendBalance = xend.balanceOf(address(this));
+        require(xendBalance > user.depositedAmount, "Withdrawing more than you deposited");
+        accXendTokens = xendBalance;
+        uint256 accXendTokensforUser = user.depositedAmount.mul(accXendTokens).div(1e8);
+        xend.transfer(msg.sender, accXendTokensforUser);
+
     }
 }

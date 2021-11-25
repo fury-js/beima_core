@@ -110,7 +110,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"borrowAmount\",\"type\":\"uint256\"}],\"name\":\"borrow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"mintAmount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"redeemTokens\",\"type\":\"uint256\"}],\"name\":\"redeem\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"redeemAmount\",\"type\":\"uint256\"}],\"name\":\"redeemUnderlying\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"repayAmount\",\"type\":\"uint256\"}],\"name\":\"repayBorrow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"underlying\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/CTokenInterface.sol\":\"CTokenInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/CTokenInterface.sol\":{\"keccak256\":\"0x1c7513d96edbaa83c562ad0909266639f9eec8e8f09862abf94bb6b4136d8906\",\"urls\":[\"bzz-raw://89bc787bf000e7346a6c5fd819a3ea40c54c363364059d3fd6f3edff7fa9aa7d\",\"dweb:/ipfs/QmcRA46DrwLY3DNVPUcC8PQuGZHyqEje2nnX6HhTzLaU5W\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"borrowAmount\",\"type\":\"uint256\"}],\"name\":\"borrow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"mintAmount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"redeemTokens\",\"type\":\"uint256\"}],\"name\":\"redeem\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"redeemAmount\",\"type\":\"uint256\"}],\"name\":\"redeemUnderlying\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"repayAmount\",\"type\":\"uint256\"}],\"name\":\"repayBorrow\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"underlying\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/CTokenInterface.sol\":\"CTokenInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/CTokenInterface.sol\":{\"keccak256\":\"0x1c7513d96edbaa83c562ad0909266639f9eec8e8f09862abf94bb6b4136d8906\",\"urls\":[\"bzz-raw://89bc787bf000e7346a6c5fd819a3ea40c54c363364059d3fd6f3edff7fa9aa7d\",\"dweb:/ipfs/QmcRA46DrwLY3DNVPUcC8PQuGZHyqEje2nnX6HhTzLaU5W\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -119,9 +119,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.8.0;\r\n\r\n\r\ninterface CTokenInterface {\r\n\tfunction mint(uint mintAmount) external returns (uint);\r\n\tfunction redeem(uint redeemTokens) external returns (uint);\r\n\tfunction redeemUnderlying(uint redeemAmount) external returns (uint);\r\n\tfunction borrow(uint borrowAmount) external returns (uint);\r\n\tfunction repayBorrow(uint repayAmount) external returns (uint);\r\n\tfunction underlying() external view returns(address);\r\n}",
-  "sourcePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/CTokenInterface.sol",
+  "sourcePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/CTokenInterface.sol",
   "ast": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/CTokenInterface.sol",
+    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/CTokenInterface.sol",
     "exportedSymbols": {
       "CTokenInterface": [
         42
@@ -616,7 +616,7 @@
     "src": "0:435:0"
   },
   "legacyAST": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/CTokenInterface.sol",
+    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/CTokenInterface.sol",
     "exportedSymbols": {
       "CTokenInterface": [
         42
@@ -1116,7 +1116,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.0",
-  "updatedAt": "2021-11-21T02:00:28.461Z",
+  "updatedAt": "2021-11-25T09:15:14.479Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

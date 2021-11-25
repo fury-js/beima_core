@@ -50,7 +50,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"cTokens\",\"type\":\"address[]\"}],\"name\":\"enterMarkets\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"getAccountLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/ComptrollerInterface.sol\":\"ComptrollerInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/ComptrollerInterface.sol\":{\"keccak256\":\"0x53c14057c28889da756f883b59a91c40569bf1f1dfda504eab1bd228b7ed17c3\",\"urls\":[\"bzz-raw://90a2aedd5630aa6aafd4ebe39300adeab5fd1f5995c97bacf5c82dadb8b35415\",\"dweb:/ipfs/QmVhUkX71yTqyfrvf7Q72LdmiySnFxjVXzZb61jxJnfVH2\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"cTokens\",\"type\":\"address[]\"}],\"name\":\"enterMarkets\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"getAccountLiquidity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/ComptrollerInterface.sol\":\"ComptrollerInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/ComptrollerInterface.sol\":{\"keccak256\":\"0x53c14057c28889da756f883b59a91c40569bf1f1dfda504eab1bd228b7ed17c3\",\"urls\":[\"bzz-raw://90a2aedd5630aa6aafd4ebe39300adeab5fd1f5995c97bacf5c82dadb8b35415\",\"dweb:/ipfs/QmVhUkX71yTqyfrvf7Q72LdmiySnFxjVXzZb61jxJnfVH2\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -59,9 +59,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.8.0;\r\n\r\ninterface ComptrollerInterface{\r\n\tfunction enterMarkets(address[] calldata cTokens) external returns(uint[] memory);\r\n\tfunction getAccountLiquidity(address owner) external view returns(uint, uint, uint);\r\n}",
-  "sourcePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/ComptrollerInterface.sol",
+  "sourcePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/ComptrollerInterface.sol",
   "ast": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/ComptrollerInterface.sol",
+    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/ComptrollerInterface.sol",
     "exportedSymbols": {
       "ComptrollerInterface": [
         65
@@ -334,7 +334,7 @@
     "src": "0:233:1"
   },
   "legacyAST": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/contracts/ComptrollerInterface.sol",
+    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/ComptrollerInterface.sol",
     "exportedSymbols": {
       "ComptrollerInterface": [
         65
@@ -612,7 +612,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.0",
-  "updatedAt": "2021-11-21T02:00:28.545Z",
+  "updatedAt": "2021-11-25T09:15:14.501Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

@@ -1,6 +1,795 @@
 
 // const web3 = require("Web3")
+const BUSD_ADDRESS = '0x5864c777697Bf9881220328BF2f16908c9aFCD7e';
+const BUSD_ABI = [
+	{
+		constant: false,
+		inputs: [],
+		name: 'disregardProposeOwner',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'name',
+		outputs: [{ name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ name: '_spender', type: 'address' },
+			{ name: '_value', type: 'uint256' },
+		],
+		name: 'approve',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'assetProtectionRole',
+		outputs: [{ name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'totalSupply',
+		outputs: [{ name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ name: 'r', type: 'bytes32[]' },
+			{ name: 's', type: 'bytes32[]' },
+			{ name: 'v', type: 'uint8[]' },
+			{ name: 'to', type: 'address[]' },
+			{ name: 'value', type: 'uint256[]' },
+			{ name: 'fee', type: 'uint256[]' },
+			{ name: 'seq', type: 'uint256[]' },
+			{ name: 'deadline', type: 'uint256[]' },
+		],
+		name: 'betaDelegatedTransferBatch',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ name: 'sig', type: 'bytes' },
+			{ name: 'to', type: 'address' },
+			{ name: 'value', type: 'uint256' },
+			{ name: 'fee', type: 'uint256' },
+			{ name: 'seq', type: 'uint256' },
+			{ name: 'deadline', type: 'uint256' },
+		],
+		name: 'betaDelegatedTransfer',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ name: '_from', type: 'address' },
+			{ name: '_to', type: 'address' },
+			{ name: '_value', type: 'uint256' },
+		],
+		name: 'transferFrom',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'initializeDomainSeparator',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'decimals',
+		outputs: [{ name: '', type: 'uint8' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'unpause',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'unfreeze',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'claimOwnership',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_newSupplyController', type: 'address' }],
+		name: 'setSupplyController',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'paused',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'balanceOf',
+		outputs: [{ name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'initialize',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'pause',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [{ name: 'target', type: 'address' }],
+		name: 'nextSeqOf',
+		outputs: [{ name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_newAssetProtectionRole', type: 'address' }],
+		name: 'setAssetProtectionRole',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'freeze',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'owner',
+		outputs: [{ name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'symbol',
+		outputs: [{ name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_newWhitelister', type: 'address' }],
+		name: 'setBetaDelegateWhitelister',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_value', type: 'uint256' }],
+		name: 'decreaseSupply',
+		outputs: [{ name: 'success', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'isWhitelistedBetaDelegate',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ name: '_to', type: 'address' },
+			{ name: '_value', type: 'uint256' },
+		],
+		name: 'transfer',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'whitelistBetaDelegate',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_proposedOwner', type: 'address' }],
+		name: 'proposeOwner',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_value', type: 'uint256' }],
+		name: 'increaseSupply',
+		outputs: [{ name: 'success', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'betaDelegateWhitelister',
+		outputs: [{ name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'proposedOwner',
+		outputs: [{ name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'unwhitelistBetaDelegate',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [
+			{ name: '_owner', type: 'address' },
+			{ name: '_spender', type: 'address' },
+		],
+		name: 'allowance',
+		outputs: [{ name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'wipeFrozenAddress',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'EIP712_DOMAIN_HASH',
+		outputs: [{ name: '', type: 'bytes32' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [{ name: '_addr', type: 'address' }],
+		name: 'isFrozen',
+		outputs: [{ name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'supplyController',
+		outputs: [{ name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'reclaimBUSD',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		inputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'constructor',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'from', type: 'address' },
+			{ indexed: true, name: 'to', type: 'address' },
+			{ indexed: false, name: 'value', type: 'uint256' },
+		],
+		name: 'Transfer',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'owner', type: 'address' },
+			{ indexed: true, name: 'spender', type: 'address' },
+			{ indexed: false, name: 'value', type: 'uint256' },
+		],
+		name: 'Approval',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'currentOwner', type: 'address' },
+			{ indexed: true, name: 'proposedOwner', type: 'address' },
+		],
+		name: 'OwnershipTransferProposed',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'oldProposedOwner', type: 'address' }],
+		name: 'OwnershipTransferDisregarded',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'oldOwner', type: 'address' },
+			{ indexed: true, name: 'newOwner', type: 'address' },
+		],
+		name: 'OwnershipTransferred',
+		type: 'event',
+	},
+	{ anonymous: false, inputs: [], name: 'Pause', type: 'event' },
+	{ anonymous: false, inputs: [], name: 'Unpause', type: 'event' },
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'addr', type: 'address' }],
+		name: 'AddressFrozen',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'addr', type: 'address' }],
+		name: 'AddressUnfrozen',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'addr', type: 'address' }],
+		name: 'FrozenAddressWiped',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'oldAssetProtectionRole', type: 'address' },
+			{ indexed: true, name: 'newAssetProtectionRole', type: 'address' },
+		],
+		name: 'AssetProtectionRoleSet',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'to', type: 'address' },
+			{ indexed: false, name: 'value', type: 'uint256' },
+		],
+		name: 'SupplyIncreased',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'from', type: 'address' },
+			{ indexed: false, name: 'value', type: 'uint256' },
+		],
+		name: 'SupplyDecreased',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'oldSupplyController', type: 'address' },
+			{ indexed: true, name: 'newSupplyController', type: 'address' },
+		],
+		name: 'SupplyControllerSet',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'from', type: 'address' },
+			{ indexed: true, name: 'to', type: 'address' },
+			{ indexed: false, name: 'value', type: 'uint256' },
+			{ indexed: false, name: 'seq', type: 'uint256' },
+			{ indexed: false, name: 'fee', type: 'uint256' },
+		],
+		name: 'BetaDelegatedTransfer',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'oldWhitelister', type: 'address' },
+			{ indexed: true, name: 'newWhitelister', type: 'address' },
+		],
+		name: 'BetaDelegateWhitelisterSet',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'newDelegate', type: 'address' }],
+		name: 'BetaDelegateWhitelisted',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'oldDelegate', type: 'address' }],
+		name: 'BetaDelegateUnwhitelisted',
+		type: 'event',
+	},
+];
 
+const BUSD_ADDRESS_BSC = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
+const BUSD_ABI_BSC = [
+	{
+		inputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'constructor',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{
+				indexed: true,
+				internalType: 'address',
+				name: 'owner',
+				type: 'address',
+			},
+			{
+				indexed: true,
+				internalType: 'address',
+				name: 'spender',
+				type: 'address',
+			},
+			{
+				indexed: false,
+				internalType: 'uint256',
+				name: 'value',
+				type: 'uint256',
+			},
+		],
+		name: 'Approval',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{
+				indexed: true,
+				internalType: 'address',
+				name: 'previousOwner',
+				type: 'address',
+			},
+			{
+				indexed: true,
+				internalType: 'address',
+				name: 'newOwner',
+				type: 'address',
+			},
+		],
+		name: 'OwnershipTransferred',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, internalType: 'address', name: 'from', type: 'address' },
+			{ indexed: true, internalType: 'address', name: 'to', type: 'address' },
+			{
+				indexed: false,
+				internalType: 'uint256',
+				name: 'value',
+				type: 'uint256',
+			},
+		],
+		name: 'Transfer',
+		type: 'event',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: '_decimals',
+		outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: '_name',
+		outputs: [{ internalType: 'string', name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: '_symbol',
+		outputs: [{ internalType: 'string', name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [
+			{ internalType: 'address', name: 'owner', type: 'address' },
+			{ internalType: 'address', name: 'spender', type: 'address' },
+		],
+		name: 'allowance',
+		outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ internalType: 'address', name: 'spender', type: 'address' },
+			{ internalType: 'uint256', name: 'amount', type: 'uint256' },
+		],
+		name: 'approve',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
+		name: 'balanceOf',
+		outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }],
+		name: 'burn',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'decimals',
+		outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ internalType: 'address', name: 'spender', type: 'address' },
+			{ internalType: 'uint256', name: 'subtractedValue', type: 'uint256' },
+		],
+		name: 'decreaseAllowance',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'getOwner',
+		outputs: [{ internalType: 'address', name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ internalType: 'address', name: 'spender', type: 'address' },
+			{ internalType: 'uint256', name: 'addedValue', type: 'uint256' },
+		],
+		name: 'increaseAllowance',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }],
+		name: 'mint',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'name',
+		outputs: [{ internalType: 'string', name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'owner',
+		outputs: [{ internalType: 'address', name: '', type: 'address' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [],
+		name: 'renounceOwnership',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'symbol',
+		outputs: [{ internalType: 'string', name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: true,
+		inputs: [],
+		name: 'totalSupply',
+		outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ internalType: 'address', name: 'recipient', type: 'address' },
+			{ internalType: 'uint256', name: 'amount', type: 'uint256' },
+		],
+		name: 'transfer',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [
+			{ internalType: 'address', name: 'sender', type: 'address' },
+			{ internalType: 'address', name: 'recipient', type: 'address' },
+			{ internalType: 'uint256', name: 'amount', type: 'uint256' },
+		],
+		name: 'transferFrom',
+		outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+	{
+		constant: false,
+		inputs: [{ internalType: 'address', name: 'newOwner', type: 'address' }],
+		name: 'transferOwnership',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+];
 const PensionServiceProvider = artifacts.require("PensionServiceProvider");
 const LINK_ADDRESS = "0x514910771AF9Ca656af840dff83E8264EcF986CA"
 const LINK_ABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"},{"name":"_data","type":"bytes"}],"name":"transferAndCall","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_subtractedValue","type":"uint256"}],"name":"decreaseApproval","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_addedValue","type":"uint256"}],"name":"increaseApproval","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"data","type":"bytes"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"}]
@@ -22,8 +811,22 @@ const fromUnlockedAccount = {
   gasPrice: web3.utils.toHex(20000000000) // use ethgasstation.info (mainnet only)
 };
 
+const account = "0xd037f8DBd4749ffb3Df62316049c66061B36a6B2"
+const binanceAccount = '0xe2fc31F816A9b94326492132018C3aEcC4a93aE1';
+const fromUnlockedBinanceAccount = {
+	from: '0xe2fc31F816A9b94326492132018C3aEcC4a93aE1',
+	gasLimit: web3.utils.toHex(500000),
+	gasPrice: web3.utils.toHex(20000000000), // use ethgasstation.info (mainnet only)
+};
+
+const xendOnEthereum = '0xE4CFE9eAa8Cdb0942A80B7bC68fD8Ab0F6D44903';
+
+const xendOnBsc = '0x4a080377f83d669d7bb83b3184a8a5e61b500608';
+
 // link contract instance
     const link = new web3.eth.Contract(LINK_ABI, LINK_ADDRESS);
+    const busd = new web3.eth.Contract(BUSD_ABI, BUSD_ADDRESS);
+    const busdBsc = new web3.eth.Contract(BUSD_ABI_BSC, BUSD_ADDRESS_BSC)
     
 // clink contract instance
     const clink = new web3.eth.Contract(cLINK_ABI, cLINK);
@@ -45,90 +848,98 @@ const wait = (seconds) => {
 const underlyingDecimals = 18;
 
 
-module.exports = async function(callback) {
+module.exports = async (callback) => {
     try {
-        let result;
-        let balanceBefore;
-        let balanceAfter;
+			let result;
+			let balanceBefore;
+			let balanceAfter;
 
-        let id = 1;
-        let name = "JUHEL INDUSTRIES";
-        let amountToSpend = 1000000000;  // 100 mbusd
-        let approvedAmountToSpend = 1000000000000000000;  // 1000 mbusd
-        let lockTime = 30;
-        let timeDuration = 1;
+			let id = 1;
+			let name = 'JUHEL INDUSTRIES';
+			let amountToSpend = 1000000000; // 100 mbusd
+			let approvedAmountToSpend = 1000000000000000000; // 1000 mbusd
+			let lockTime = 30;
+			let timeDuration = 1;
 
-        
+			//fetch accounts from wallet- these are unlocked
+			const accounts = await web3.eth.getAccounts();
+			// console.log('accounts', accounts)
 
-        //fetch accounts from wallet- these are unlocked
-		const accounts = await web3.eth.getAccounts()
-		// console.log('accounts', accounts)
+			const pensionContract = await PensionServiceProvider.deployed();
 
-        const pensionContract = await PensionServiceProvider.deployed()
+			console.log('Pension Provider deployed at:', pensionContract.address);
 
-        console.log("Pension Privider deployed at:", pensionContract.address);
+			// register user
+			// result = await pensionContract.register(cLINK, name, 100, 100, {
+			// 	from: binanceAccount,
+			// });
+			// console.log(result.logs[0].args)
 
-        // register user
-        result = await pensionContract.register(id, cLINK, name, 10*100, 10*100, timeDuration, {from: unlockedAccount})
-        // console.log(result.logs[0].args)
+			await wait(1);
 
-        await wait(1)
+			// console.log(100 * 10 ** 18)
 
-        // console.log(100 * 10 ** 18)
+			// check balance before supply
+			// balanceBefore = await link.methods.balanceOf(unlockedAccount).call()
+			// console.log("link balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
 
+			// result = await link.methods.transfer(pensionContract.address, balanceBefore).send(fromUnlockedAccount)
+			// // console.log(transferResult)
 
-        // check balance before supply
-        balanceBefore = await link.methods.balanceOf(unlockedAccount).call()
-        console.log("link balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
+			// await wait(3)
 
-        result = await link.methods.transfer(pensionContract.address, balanceBefore).send(fromUnlockedAccount)
-        // console.log(transferResult)
+			// // // // supply Eth
+			// let result0 = await pensionContract.deposit(balanceBefore, {from: unlockedAccount})
+			// // console.log(result0.logs[0].args)
 
-        await wait(3)
+			// await pensionContract.setLockTime(lockTime, {from: unlockedAccount});
 
-        // // // supply Eth
-        let result0 = await pensionContract.deposit(balanceBefore, {from: unlockedAccount})
-        console.log(result0.logs[0].args)
+			// // check balance after supply
+			// balanceAfter = await link.methods.balanceOf(unlockedAccount).call()
+			// console.log("link balance after supply:", web3.utils.fromWei(balanceAfter.toString(), "ether"));
 
-        await pensionContract.setLockTime(lockTime, {from: unlockedAccount});
+			// let pensionContractBalance = await link.methods.balanceOf(pensionContract.address).call()
+			// console.log("Link Balance of pension contract:", web3.utils.fromWei(pensionContractBalance.toString(), "ether") )
 
-        // check balance after supply
-        balanceAfter = await link.methods.balanceOf(unlockedAccount).call()
-        console.log("link balance after supply:", web3.utils.fromWei(balanceAfter.toString(), "ether"));
+			// let cTokenBalance1 = await clink.methods.balanceOf(pensionContract.address).call();
+			// cTokenBalance = cTokenBalance1 / 1e8;
+			// console.log(`MyContract's cLink Token Balance:`, cTokenBalance);
 
-        let pensionContractBalance = await link.methods.balanceOf(pensionContract.address).call()
-        console.log("Link Balance of pension contract:", web3.utils.fromWei(pensionContractBalance.toString(), "ether") )
+			// await wait(3)
 
-        let cTokenBalance1 = await clink.methods.balanceOf(pensionContract.address).call();
-        cTokenBalance = cTokenBalance1 / 1e8;
-        console.log(`MyContract's cLink Token Balance:`, cTokenBalance);
+			// let exchangeRateCurrent1 = await clink.methods.exchangeRateCurrent().call()
+			// console.log("Current exchange rate for link to clink",web3.utils.fromWei(exchangeRateCurrent1.toString(), "ether"))
 
-        await wait(3)
+			// // let amount = web3.utils.toWei(cTokenBalance.toString(), "ether");
+			// // console.log(amount);
 
-        let exchangeRateCurrent1 = await clink.methods.exchangeRateCurrent().call()
-        console.log("Current exchange rate for link to clink",web3.utils.fromWei(exchangeRateCurrent1.toString(), "ether"))
+			// await pensionContract.updateTimeDurationOfDeposit({from: unlockedAccount})
 
-        // let amount = web3.utils.toWei(cTokenBalance.toString(), "ether");
-        // console.log(amount);
+			// await wait(3)
 
-        // await pensionContract.updateTimeDurationOfDeposit({from: unlockedAccount})
+			// let result1 = await pensionContract.withdraw(fromUnlockedAccount);
+			// // console.log(result1.logs[0].args)
 
-        await wait(3)
+			// let contractBalanceAfterWithdraw = await link.methods.balanceOf(pensionContract.address).call()
+			// console.log("link balance of contract after withdraw:", web3.utils.fromWei(contractBalanceAfterWithdraw.toString(), "ether"));
 
-        let result1 = await pensionContract.withdraw(fromUnlockedAccount);
-        console.log(result1.logs[0].args)
+			// let userBalanceAfterWithdraw = await link.methods.balanceOf(unlockedAccount).call()
+			// console.log("link balance user after withdraw:", web3.utils.fromWei(userBalanceAfterWithdraw.toString(), "ether"));
 
-        let contractBalanceAfterWithdraw = await link.methods.balanceOf(pensionContract.address).call()
-        console.log("link balance of contract after withdraw:", web3.utils.fromWei(contractBalanceAfterWithdraw.toString(), "ether"));
+			// testing xend finance
 
-        let userBalanceAfterWithdraw = await link.methods.balanceOf(unlockedAccount).call()
-        console.log("link balance user after withdraw:", web3.utils.fromWei(userBalanceAfterWithdraw.toString(), "ether"));
+			// check balance before supply
+			balanceBefore = await busdBsc.methods.balanceOf(binanceAccount).call()
+			console.log("busd balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
 
+			let b = await busdBsc.methods
+				.allowance(pensionContract.address)
+				.cal();
+            console.log(b)
 
-
-        
-        
-    } catch (error) {
+			// let result2 = await pensionContract.depositToXendFinance(100 * 100, fromUnlockedBinanceAccount);
+			// console.log(result2.logs);
+		} catch (error) {
         console.log(error)
         
     }

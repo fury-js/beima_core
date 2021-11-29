@@ -64,12 +64,12 @@ module.exports = {
 			provider: () =>
 				new HDWalletProvider(
 					'often loan assume believe person motion chuckle pumpkin night noble aisle acoustic',
-					'https://bsc-dataseed1.defibit.io:8545',
+					'https://data-seed-prebsc-2-s2.binance.org:8545',
 				),
 			network_id: 97,
 			confirmations: 2,
 			networkCheckTimeout: 2000000,
-			timeoutBlocks: 500,
+			timeoutBlocks: 200,
 			skipDryRun: true,
 		},
 

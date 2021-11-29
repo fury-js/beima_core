@@ -1,16 +1,17 @@
 // const web3 = require("web3")
+let BN = web3.utils.BN;
 const EVM_REVERT = 'VM Exception while processing transaction: revert'
 const LINK_ADDRESS = "0x514910771AF9Ca656af840dff83E8264EcF986CA"
 const LINK_ABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"},{"name":"_data","type":"bytes"}],"name":"transferAndCall","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_subtractedValue","type":"uint256"}],"name":"decreaseApproval","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_addedValue","type":"uint256"}],"name":"increaseApproval","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"data","type":"bytes"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"}]
 
-// const { assert } = require("chai")
+const { assert } = require("chai")
 
-// require('chai')
-// .use(require('chai-as-promised'))
-// .should()
+require('chai')
+.use(require('chai-as-promised'))
+.should()
 
 const PensionServiceProvider = artifacts.require('PensionServiceProvider');
-const BUSD = artifacts.require('mBUSD');
+// const BUSD = artifacts.require('mBUSD');
 const Keeper = artifacts.require("MockKeeper")
 
 
@@ -32,7 +33,7 @@ contract('Pension Service Provider', ([owner, applicant]) => {
     let approvedAmountToSpend = web3.utils.toWei('100000', 'ether');  // 100000 link tokens
     let lockTime = 30;
     let timeDuration = 1;
-    const link = new web3.eth.Contract(LINK_ABI, LINK_ADDRESS);
+    // const link = new web3.eth.Contract(LINK_ABI, LINK_ADDRESS);
 
 
     const comptrollerAddressMainnet = '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B';
@@ -54,7 +55,7 @@ contract('Pension Service Provider', ([owner, applicant]) => {
         beforeEach(async () => {
 
         // load contracts
-        busd = await BUSD.new();
+        // busd = await BUSD.new();
         pensionContract = await PensionServiceProvider.new(
 					xendOnEthereum,
 					comptrollerAddressMainnet,
@@ -62,18 +63,7 @@ contract('Pension Service Provider', ([owner, applicant]) => {
 					priceOracleAddressMainnet,
 				);
         keeper = await Keeper.new(pensionContract.address)
-        // result = await pensionContract.pensionServiceApplicant(unlockedAccount);
-        // console.log(web3.utils.fromWei(result.depositedAmount.toString(), "ether"))
-
-
-
-        
-
-        // // check balance before register
-        // result = await governanceToken.balanceOf(registee);
-        // assert.equal(result.toString(), 10000, 'registering account has enough tokens')
-
-        // await busd.approve(registerContract.address, minimumTokenRequired, { from: registee })
+        link = new web3.eth.Contract(LINK_ABI, LINK_ADDRESS);
 
 
     })         
@@ -100,7 +90,7 @@ contract('Pension Service Provider', ([owner, applicant]) => {
             // let deposit = await pensionContract.deposit(amountToSpend, {from: unlockedAccount})
         })
 
-        it("Updates and Performs Upkeep", async () => {
+        it("Updates and Performs Upkeep To invest in Compound finance protocol", async () => {
 					await pensionContract.register(
 						cLINK,
 						name,
@@ -161,7 +151,37 @@ contract('Pension Service Provider', ([owner, applicant]) => {
             console.log(web3.utils.fromWei(result.approvedAmountToSpend.toString(), "ether"))
             console.log(web3.utils.fromWei(result.amountToSpend.toString(), "ether"))
         })
-        
+
+        it("Wthdraws Underlying Assets and Credits the Owner of the Assets", async () => {
+            await pensionContract.register(cLINK,name,amountToSpend,approvedAmountToSpend,lockTime,{ from: unlockedAccount });
+            await link.methods.approve(pensionContract.address, approvedAmountToSpend).send(fromUnlockedAccount);
+			await pensionContract.updateTimeDurationOfDeposit(fromUnlockedAccount);
+            let upkeep = await pensionContract.checkUpkeep('0x');
+            // console.log(result)
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+
+            await wait(2)
+            // 2nd transaction
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+            let user = await pensionContract.pensionServiceApplicant(unlockedAccount);
+            userAmount = web3.utils.fromWei(user.depositedAmount.toString(), "ether")
+
+
+
+            // check balance before withdrawal
+            let balanceBeforeWithdraw = await link.methods.balanceOf(unlockedAccount).call();
+            balanceBeforeWithdrawal = web3.utils.fromWei(balanceBeforeWithdraw.toString(), "ether")
+            console.log(balanceBeforeWithdrawal)
+            // assert.equal(balanceBeforeWithdrawal, balanceBefore);
+
+            result = await pensionContract.withdraw(fromUnlockedAccount);
+
+            let balanceAfterWithdraw = await link.methods.balanceOf(unlockedAccount).call();
+            balanceAfterWithdrawal = web3.utils.fromWei(balanceAfterWithdraw.toString(), "ether")
+            console.log(balanceAfterWithdrawal)
+            assert.equal(Number(balanceAfterWithdrawal), Number(new BN(balanceBeforeWithdrawal).add(new BN(userAmount))))
+
+        })
     })
     
 

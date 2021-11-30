@@ -5,7 +5,10 @@ link: https://beima.app
 
 link to frontend repo: https://github.com/Davien21/beima
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1dc8ca75b01ecedfa5fe1db6e92c1a5e7391635a
 To get Started:
 
 Requirement
@@ -24,7 +27,9 @@ Type "Yarn" to install all dependecies.
     
 Open up a seperate terminal for the root folder, 
     
-Type "ganache-cli --fork  YOUR-INFURA-API-LINK" --unlock  INSERT-ANY-ACCOUNT-ADDRESS
+    ADDRESS_TO_UNLOCK = 0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8
+    
+Type "ganache-cli --fork  YOUR-INFURA-API-LINK" --unlock  INSERT-ANY-ACCOUNT-ADDRESS-OR-THE-ADDRESS-ABOVE
     
 Replace the fromUnlockedAccount variable in the test folder "pension-service.js" with the unlocked account from above.
 
@@ -36,3 +41,5 @@ Note: Your unlocked account need to have an underlying number of LINK Tokens for
 
 
 More feautures still being integrated...
+    
+    ETH_ADDRESS for community support: 0xa6c66EF87Ba15039Ff95c8868279FB5990773b9C

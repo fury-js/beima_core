@@ -17,6 +17,8 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
+const dotenv = require('dotenv');
+dotenv.config();
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 // const HDWalletProvider = require('truffle-hdwallet-provider');
@@ -51,8 +53,8 @@ module.exports = {
 		kovan: {
 			provider: () => {
 				return new HDWalletProvider(
-					'often loan assume believe person motion chuckle pumpkin night noble aisle acoustic',
-					'wss://kovan.infura.io/ws/v3/dea19f07f7bc4e4191075f5d4e2b93b2',
+					process.env.MNEMONIC,
+					process.env.INFURA_WEBSOCKET,
 				);
 			},
 			network_id: 42,
@@ -63,7 +65,7 @@ module.exports = {
 		testnet: {
 			provider: () =>
 				new HDWalletProvider(
-					'often loan assume believe person motion chuckle pumpkin night noble aisle acoustic',
+					process.env.MNEMONIC,
 					'https://data-seed-prebsc-2-s2.binance.org:8545',
 				),
 			network_id: 97,
@@ -75,8 +77,8 @@ module.exports = {
 
 		rinkeby: {
 			provider: new HDWalletProvider(
-				'often loan assume believe person motion chuckle pumpkin night noble aisle acoustic',
-				'https://eth-rinkeby.alchemyapi.io/v2/9BFqbTUwcNyOVGXLD_tvjyCVsH5zDth5',
+				process.env.MNEMONIC,
+				process.env.ALCHEMY_API,
 			),
 			network_id: 4,
 			gas: 4500000,

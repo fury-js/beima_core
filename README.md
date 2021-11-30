@@ -3,9 +3,12 @@
 Collection of the beima pensions service provider contracts that servers the beima app.
 link: https://beima.app
 
-To get Started:
-Requirements:
+link to frontend repo: https://github.com/Davien21/beima
 
+
+To get Started:
+
+Requirement
 1:  Yarn or npm
 2:  node version of 10.1.2 or higher. (for some reason truffle fails to compile with the latest node version).
     advisable to use the lts version.

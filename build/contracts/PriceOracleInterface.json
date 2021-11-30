@@ -21,7 +21,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"}],\"name\":\"getUnderlyingPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/PriceOracleInterface.sol\":\"PriceOracleInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/PriceOracleInterface.sol\":{\"keccak256\":\"0xb325b441d3aca24011fc80ad84523e4006dacfb7141f04962cbf7a03a3a94885\",\"urls\":[\"bzz-raw://bea20247dbf4d1c7bb63b6e4003e1511f93131b21b947f9c5dffade138ca23ff\",\"dweb:/ipfs/QmQkaKfc7GBiP1T7PX1Yy8781GP3kPFLAD4nxFU7K9BaTo\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"asset\",\"type\":\"address\"}],\"name\":\"getUnderlyingPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/PriceOracleInterface.sol\":\"PriceOracleInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/PriceOracleInterface.sol\":{\"keccak256\":\"0x2693670e1caf918511adaba28e3c0930de0e8c33e592ce7e7328b831507c0ec5\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://45c35143bdbaab796b67e90d932cfa65befd4d412de9fb8f10a0a67814cb80b8\",\"dweb:/ipfs/QmVpspRtapEwovDJJvrbvxx21Xx3UXQ1BhzARn3EHmTnHz\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -29,20 +29,21 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity ^0.8.0;\r\ninterface PriceOracleInterface {\r\n\tfunction getUnderlyingPrice(address asset) external view returns(uint);\r\n}",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.0;\r\ninterface PriceOracleInterface {\r\n\tfunction getUnderlyingPrice(address asset) external view returns(uint);\r\n}",
   "sourcePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/PriceOracleInterface.sol",
   "ast": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/PriceOracleInterface.sol",
+    "absolutePath": "project:/contracts/PriceOracleInterface.sol",
     "exportedSymbols": {
       "PriceOracleInterface": [
-        867
+        2025
       ]
     },
-    "id": 868,
+    "id": 2026,
+    "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 859,
+        "id": 2017,
         "literals": [
           "solidity",
           "^",
@@ -50,7 +51,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:4"
+        "src": "33:23:12"
       },
       {
         "abstract": false,
@@ -58,33 +59,33 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 867,
+        "id": 2025,
         "linearizedBaseContracts": [
-          867
+          2025
         ],
         "name": "PriceOracleInterface",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "fc57d4df",
-            "id": 866,
+            "id": 2024,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "getUnderlyingPrice",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 862,
+              "id": 2020,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 861,
+                  "id": 2019,
                   "mutability": "mutable",
                   "name": "asset",
                   "nodeType": "VariableDeclaration",
-                  "scope": 866,
-                  "src": "88:13:4",
+                  "scope": 2024,
+                  "src": "121:13:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -92,10 +93,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 860,
+                    "id": 2018,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "88:7:4",
+                    "src": "121:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -105,20 +106,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "87:15:4"
+              "src": "120:15:12"
             },
             "returnParameters": {
-              "id": 865,
+              "id": 2023,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 864,
+                  "id": 2022,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 866,
-                  "src": "125:4:4",
+                  "scope": 2024,
+                  "src": "158:4:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -126,10 +127,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 863,
+                    "id": 2021,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "125:4:4",
+                    "src": "158:4:12",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -138,33 +139,34 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "124:6:4"
+              "src": "157:6:12"
             },
-            "scope": 867,
-            "src": "60:71:4",
+            "scope": 2025,
+            "src": "93:71:12",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 868,
-        "src": "25:109:4"
+        "scope": 2026,
+        "src": "58:109:12"
       }
     ],
-    "src": "0:134:4"
+    "src": "33:134:12"
   },
   "legacyAST": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/PriceOracleInterface.sol",
+    "absolutePath": "project:/contracts/PriceOracleInterface.sol",
     "exportedSymbols": {
       "PriceOracleInterface": [
-        867
+        2025
       ]
     },
-    "id": 868,
+    "id": 2026,
+    "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 859,
+        "id": 2017,
         "literals": [
           "solidity",
           "^",
@@ -172,7 +174,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:4"
+        "src": "33:23:12"
       },
       {
         "abstract": false,
@@ -180,33 +182,33 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 867,
+        "id": 2025,
         "linearizedBaseContracts": [
-          867
+          2025
         ],
         "name": "PriceOracleInterface",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "fc57d4df",
-            "id": 866,
+            "id": 2024,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "getUnderlyingPrice",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 862,
+              "id": 2020,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 861,
+                  "id": 2019,
                   "mutability": "mutable",
                   "name": "asset",
                   "nodeType": "VariableDeclaration",
-                  "scope": 866,
-                  "src": "88:13:4",
+                  "scope": 2024,
+                  "src": "121:13:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -214,10 +216,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 860,
+                    "id": 2018,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "88:7:4",
+                    "src": "121:7:12",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -227,20 +229,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "87:15:4"
+              "src": "120:15:12"
             },
             "returnParameters": {
-              "id": 865,
+              "id": 2023,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 864,
+                  "id": 2022,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 866,
-                  "src": "125:4:4",
+                  "scope": 2024,
+                  "src": "158:4:12",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -248,10 +250,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 863,
+                    "id": 2021,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "125:4:4",
+                    "src": "158:4:12",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -260,28 +262,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "124:6:4"
+              "src": "157:6:12"
             },
-            "scope": 867,
-            "src": "60:71:4",
+            "scope": 2025,
+            "src": "93:71:12",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 868,
-        "src": "25:109:4"
+        "scope": 2026,
+        "src": "58:109:12"
       }
     ],
-    "src": "0:134:4"
+    "src": "33:134:12"
   },
   "compiler": {
     "name": "solc",
     "version": "0.8.0+commit.c7dfd78e.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.0",
-  "updatedAt": "2021-11-25T09:15:14.594Z",
+  "schemaVersion": "3.4.3",
+  "updatedAt": "2021-11-30T13:31:39.452Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

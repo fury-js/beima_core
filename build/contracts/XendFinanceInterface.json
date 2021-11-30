@@ -41,7 +41,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"member\",\"type\":\"address\"}],\"name\":\"GetMemberXendTokenReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"derivativeAmount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/XendFinanceInterface.sol\":\"XendFinanceInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/XendFinanceInterface.sol\":{\"keccak256\":\"0xbbbd806c69148c0525bd840f8dfcb046ee7ee7c4c430c9c7fbf4d2ec68968cdf\",\"urls\":[\"bzz-raw://80eac146d04205fe0b9536992555e21b07106644189ed2b2f7893195ea9e4d99\",\"dweb:/ipfs/QmNQZ8KvCvQU9iX36ForiVC1bKaA57cUMYaVMvEXAhG4to\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"member\",\"type\":\"address\"}],\"name\":\"GetMemberXendTokenReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"derivativeAmount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/XendFinanceInterface.sol\":\"XendFinanceInterface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/XendFinanceInterface.sol\":{\"keccak256\":\"0x81ff565d85cbb449008a604dc1b7f10c0ca3fb7b361caa942b3c7b1f39deeceb\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://88aa5f08fb5e3708cd269d1296847be855f25b31f2ed97c3a070cba0e3e602bd\",\"dweb:/ipfs/QmRki2W4SrS3LSMu1PAZ8ot4FnzYDRb2pCLKNJsN21ijwq\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -49,20 +49,21 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity ^0.8.0;\r\n\r\n\r\ninterface XendFinanceInterface{\r\n\r\n    function withdraw(uint256 derivativeAmount) external;\r\n    function deposit() external;\r\n    function GetMemberXendTokenReward(address member)external view returns (uint256);\r\n}",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.0;\r\n\r\n\r\ninterface XendFinanceInterface{\r\n\r\n    function withdraw(uint256 derivativeAmount) external;\r\n    function deposit() external;\r\n    function GetMemberXendTokenReward(address member)external view returns (uint256);\r\n}",
   "sourcePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/XendFinanceInterface.sol",
   "ast": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/XendFinanceInterface.sol",
+    "absolutePath": "project:/contracts/XendFinanceInterface.sol",
     "exportedSymbols": {
       "XendFinanceInterface": [
-        1016
+        2043
       ]
     },
-    "id": 1017,
+    "id": 2044,
+    "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1000,
+        "id": 2027,
         "literals": [
           "solidity",
           "^",
@@ -70,7 +71,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:4"
+        "src": "33:23:13"
       },
       {
         "abstract": false,
@@ -78,33 +79,33 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 1016,
+        "id": 2043,
         "linearizedBaseContracts": [
-          1016
+          2043
         ],
         "name": "XendFinanceInterface",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "2e1a7d4d",
-            "id": 1005,
+            "id": 2032,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "withdraw",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1003,
+              "id": 2030,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1002,
+                  "id": 2029,
                   "mutability": "mutable",
                   "name": "derivativeAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1005,
-                  "src": "86:24:4",
+                  "scope": 2032,
+                  "src": "119:24:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -112,10 +113,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1001,
+                    "id": 2028,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "86:7:4",
+                    "src": "119:7:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -124,66 +125,66 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "85:26:4"
+              "src": "118:26:13"
             },
             "returnParameters": {
-              "id": 1004,
+              "id": 2031,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "120:0:4"
+              "src": "153:0:13"
             },
-            "scope": 1016,
-            "src": "68:53:4",
+            "scope": 2043,
+            "src": "101:53:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "d0e30db0",
-            "id": 1008,
+            "id": 2035,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "deposit",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1006,
+              "id": 2033,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "143:2:4"
+              "src": "176:2:13"
             },
             "returnParameters": {
-              "id": 1007,
+              "id": 2034,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "154:0:4"
+              "src": "187:0:13"
             },
-            "scope": 1016,
-            "src": "127:28:4",
+            "scope": 2043,
+            "src": "160:28:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "eec562c3",
-            "id": 1015,
+            "id": 2042,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "GetMemberXendTokenReward",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1011,
+              "id": 2038,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1010,
+                  "id": 2037,
                   "mutability": "mutable",
                   "name": "member",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1015,
-                  "src": "195:14:4",
+                  "scope": 2042,
+                  "src": "228:14:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -191,10 +192,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1009,
+                    "id": 2036,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "195:7:4",
+                    "src": "228:7:13",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -204,20 +205,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "194:16:4"
+              "src": "227:16:13"
             },
             "returnParameters": {
-              "id": 1014,
+              "id": 2041,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1013,
+                  "id": 2040,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1015,
-                  "src": "233:7:4",
+                  "scope": 2042,
+                  "src": "266:7:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -225,10 +226,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1012,
+                    "id": 2039,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "233:7:4",
+                    "src": "266:7:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -237,33 +238,34 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "232:9:4"
+              "src": "265:9:13"
             },
-            "scope": 1016,
-            "src": "161:81:4",
+            "scope": 2043,
+            "src": "194:81:13",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1017,
-        "src": "29:216:4"
+        "scope": 2044,
+        "src": "62:216:13"
       }
     ],
-    "src": "0:245:4"
+    "src": "33:245:13"
   },
   "legacyAST": {
-    "absolutePath": "/mnt/c/Users/chuks/Desktop/Project/beima_project/beima_core/contracts/XendFinanceInterface.sol",
+    "absolutePath": "project:/contracts/XendFinanceInterface.sol",
     "exportedSymbols": {
       "XendFinanceInterface": [
-        1016
+        2043
       ]
     },
-    "id": 1017,
+    "id": 2044,
+    "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1000,
+        "id": 2027,
         "literals": [
           "solidity",
           "^",
@@ -271,7 +273,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:4"
+        "src": "33:23:13"
       },
       {
         "abstract": false,
@@ -279,33 +281,33 @@
         "contractDependencies": [],
         "contractKind": "interface",
         "fullyImplemented": false,
-        "id": 1016,
+        "id": 2043,
         "linearizedBaseContracts": [
-          1016
+          2043
         ],
         "name": "XendFinanceInterface",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "functionSelector": "2e1a7d4d",
-            "id": 1005,
+            "id": 2032,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "withdraw",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1003,
+              "id": 2030,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1002,
+                  "id": 2029,
                   "mutability": "mutable",
                   "name": "derivativeAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1005,
-                  "src": "86:24:4",
+                  "scope": 2032,
+                  "src": "119:24:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -313,10 +315,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1001,
+                    "id": 2028,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "86:7:4",
+                    "src": "119:7:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -325,66 +327,66 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "85:26:4"
+              "src": "118:26:13"
             },
             "returnParameters": {
-              "id": 1004,
+              "id": 2031,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "120:0:4"
+              "src": "153:0:13"
             },
-            "scope": 1016,
-            "src": "68:53:4",
+            "scope": 2043,
+            "src": "101:53:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "d0e30db0",
-            "id": 1008,
+            "id": 2035,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "deposit",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1006,
+              "id": 2033,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "143:2:4"
+              "src": "176:2:13"
             },
             "returnParameters": {
-              "id": 1007,
+              "id": 2034,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "154:0:4"
+              "src": "187:0:13"
             },
-            "scope": 1016,
-            "src": "127:28:4",
+            "scope": 2043,
+            "src": "160:28:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           },
           {
             "functionSelector": "eec562c3",
-            "id": 1015,
+            "id": 2042,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "GetMemberXendTokenReward",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1011,
+              "id": 2038,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1010,
+                  "id": 2037,
                   "mutability": "mutable",
                   "name": "member",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1015,
-                  "src": "195:14:4",
+                  "scope": 2042,
+                  "src": "228:14:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -392,10 +394,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1009,
+                    "id": 2036,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "195:7:4",
+                    "src": "228:7:13",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -405,20 +407,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "194:16:4"
+              "src": "227:16:13"
             },
             "returnParameters": {
-              "id": 1014,
+              "id": 2041,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1013,
+                  "id": 2040,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1015,
-                  "src": "233:7:4",
+                  "scope": 2042,
+                  "src": "266:7:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -426,10 +428,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1012,
+                    "id": 2039,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "233:7:4",
+                    "src": "266:7:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -438,28 +440,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "232:9:4"
+              "src": "265:9:13"
             },
-            "scope": 1016,
-            "src": "161:81:4",
+            "scope": 2043,
+            "src": "194:81:13",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1017,
-        "src": "29:216:4"
+        "scope": 2044,
+        "src": "62:216:13"
       }
     ],
-    "src": "0:245:4"
+    "src": "33:245:13"
   },
   "compiler": {
     "name": "solc",
     "version": "0.8.0+commit.c7dfd78e.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.4.0",
-  "updatedAt": "2021-11-25T10:55:54.562Z",
+  "schemaVersion": "3.4.3",
+  "updatedAt": "2021-11-30T13:31:39.521Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

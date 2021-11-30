@@ -5,10 +5,7 @@ link: https://beima.app
 
 link to frontend repo: https://github.com/Davien21/beima
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 1dc8ca75b01ecedfa5fe1db6e92c1a5e7391635a
 To get Started:
 
 Requirement

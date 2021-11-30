@@ -119,9 +119,12 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
     function deposit(uint256 _amount) public payable whenNotPaused() {
         require(isRegistered[msg.sender], "Caller is not Registered");
         User storage user = pensionServiceApplicant[msg.sender];
+        CTokenInterface cToken = CTokenInterface(user.underlyingAsset);
+		address underlyingAsset = cToken.underlying();
+        IERC20(underlyingAsset).transferFrom(msg.sender, address(this), _amount);
         address cTokenaddress = user.underlyingAsset;
         _supply(cTokenaddress, _amount);
-        user.depositedAmount = user.depositedAmount + _amount;
+        user.depositedAmount = user.depositedAmount.add(_amount);
         emit Deposit(msg.sender, user.depositedAmount);
 
     }

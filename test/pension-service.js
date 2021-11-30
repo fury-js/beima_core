@@ -79,6 +79,8 @@ contract('Pension Service Provider', ([owner, applicant]) => {
         it("Accepts Deposits and Invests", async () => {
             await pensionContract.register(cLINK, name, amountToSpend, approvedAmountToSpend, lockTime,{ from: unlockedAccount });
             const approveResult = await link.methods.approve(pensionContract.address, amountToSpend).send(fromUnlockedAccount);
+            let deposit = await pensionContract.deposit(amountToSpend, fromUnlockedAccount)
+            console.log(deposit.logs[0].args)
 
             // let deposit = await pensionContract.deposit(amountToSpend, {from: unlockedAccount})
         })
@@ -116,9 +118,9 @@ contract('Pension Service Provider', ([owner, applicant]) => {
             await pensionContract.performUpkeep(upkeep.upKeepData);
 
             result = await pensionContract.pensionServiceApplicant(unlockedAccount);
-            console.log(web3.utils.fromWei(result.depositedAmount.toString(), "ether"))
-            console.log(web3.utils.fromWei(result.approvedAmountToSpend.toString(), "ether"))
-            console.log(web3.utils.fromWei(result.amountToSpend.toString(), "ether"))
+            console.log("Deposited Amount:", web3.utils.fromWei(result.depositedAmount.toString(), "ether"))
+            console.log("Remaing Approved Amount set by User:", web3.utils.fromWei(result.approvedAmountToSpend.toString(), "ether"))
+            console.log("Deafult amount to deposit on intervals:", web3.utils.fromWei(result.amountToSpend.toString(), "ether"))
 
             await wait(2)
             // console.log(upkeep.upKeepData);
@@ -126,9 +128,9 @@ contract('Pension Service Provider', ([owner, applicant]) => {
             await pensionContract.performUpkeep(upkeep.upKeepData);
 
             result = await pensionContract.pensionServiceApplicant(unlockedAccount);
-            console.log(web3.utils.fromWei(result.depositedAmount.toString(), "ether"))
-            console.log(web3.utils.fromWei(result.approvedAmountToSpend.toString(), "ether"))
-            console.log(web3.utils.fromWei(result.amountToSpend.toString(), "ether"))
+            console.log(`Increased deposited amount by ${web3.utils.fromWei(amountToSpend)}. Deposited Amount currently at:`, web3.utils.fromWei(result.depositedAmount.toString(), "ether"))
+            console.log(`Reduced approved Amount to Spend by Contract by ${web3.utils.fromWei(amountToSpend)}. Approved Amount to Spend currently at: `, web3.utils.fromWei(result.approvedAmountToSpend.toString(), "ether"))
+            console.log("Default amount to spend set by User on Registeration:", web3.utils.fromWei(result.amountToSpend.toString(), "ether"))
         })
 
         it("Gets User Accrued Interest PerBlock", async () => {

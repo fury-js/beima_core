@@ -29,4 +29,7 @@ Finally type truffle test in your terminal to execute on a local chain running o
 
 there you are tests passed.
 
+Note: Your unlocked account need to have an underlying number of LINK Tokens for test with the compound protocol.
+
+
 More feautures still being integrated...

@@ -57,11 +57,11 @@ contract('Pension Service Provider', ([owner, applicant]) => {
         // load contracts
         // busd = await BUSD.new();
         pensionContract = await PensionServiceProvider.new(
-					xendOnEthereum,
-					comptrollerAddressMainnet,
-					priceOracleAddressMainnet,
-					priceOracleAddressMainnet,
-				);
+			xendOnEthereum,
+			comptrollerAddressMainnet,
+			priceOracleAddressMainnet,
+			priceOracleAddressMainnet,
+		);
         keeper = await Keeper.new(pensionContract.address)
         link = new web3.eth.Contract(LINK_ABI, LINK_ADDRESS);
 
@@ -77,54 +77,33 @@ contract('Pension Service Provider', ([owner, applicant]) => {
         })
 
         it("Accepts Deposits and Invests", async () => {
-            await pensionContract.register(
-							cLINK,
-							name,
-							amountToSpend,
-                            approvedAmountToSpend,
-							lockTime,
-							{ from: unlockedAccount },
-						);
+            await pensionContract.register(cLINK, name, amountToSpend, approvedAmountToSpend, lockTime,{ from: unlockedAccount });
             const approveResult = await link.methods.approve(pensionContract.address, amountToSpend).send(fromUnlockedAccount);
 
             // let deposit = await pensionContract.deposit(amountToSpend, {from: unlockedAccount})
         })
 
         it("Updates and Performs Upkeep To invest in Compound finance protocol", async () => {
-					await pensionContract.register(
-						cLINK,
-						name,
-						amountToSpend,
-						approvedAmountToSpend,
-						lockTime,
-						{ from: unlockedAccount },
-					);
-					const approveResult = await link.methods
-						.approve(pensionContract.address, amountToSpend)
-						.send(fromUnlockedAccount);
-					await pensionContract.updateTimeDurationOfDeposit(
-						fromUnlockedAccount,
-					);
-					// console.log(update.logs[0].args.timeDuration.toString())
-					await wait(2);
-					// let result1 = await keeper.check({ from: owner });
-					let result1 = await pensionContract.checkUpkeep('0x');
-					// console.log(result1.upKeepData);
+			await pensionContract.register(cLINK, name, amountToSpend, approvedAmountToSpend,lockTime, { from: unlockedAccount });
+			const approveResult = await link.methods.approve(pensionContract.address, amountToSpend).send(fromUnlockedAccount);
+			await pensionContract.updateTimeDurationOfDeposit(fromUnlockedAccount);
+			// console.log(update.logs[0].args.timeDuration.toString())
+			await wait(2);
+			// let result1 = await keeper.check({ from: owner });
+			let result1 = await pensionContract.checkUpkeep('0x');
+			// console.log(result1.upKeepData);
 
-					// check balance before upkeep
-					balanceBefore = await link.methods.balanceOf(unlockedAccount).call();
-					console.log("link balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
+		    // check balance before upkeep
+			balanceBefore = await link.methods.balanceOf(unlockedAccount).call();
+			console.log("link balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
 
-					await wait(3);
-					// await pensionContract.updateTimeDurationOfDeposit({ from: unlockedAccount });
-					let result2 = await pensionContract.performUpkeep(
-						result1.upKeepData,
-						fromUnlockedAccount,
-					);
-					// console.log(result2);
+			await wait(3);
+			// await pensionContract.updateTimeDurationOfDeposit({ from: unlockedAccount });
+			let result2 = await pensionContract.performUpkeep(result1.upKeepData,fromUnlockedAccount,);
+			// console.log(result2);
 
-                    balanceAfter = await link.methods.balanceOf(unlockedAccount).call();
-					console.log("link balance after supply:", web3.utils.fromWei(balanceAfter.toString(), "ether"));
+            balanceAfter = await link.methods.balanceOf(unlockedAccount).call();
+			console.log("link balance after supply:", web3.utils.fromWei(balanceAfter.toString(), "ether"));
 
 		})
 
@@ -150,6 +129,45 @@ contract('Pension Service Provider', ([owner, applicant]) => {
             console.log(web3.utils.fromWei(result.depositedAmount.toString(), "ether"))
             console.log(web3.utils.fromWei(result.approvedAmountToSpend.toString(), "ether"))
             console.log(web3.utils.fromWei(result.amountToSpend.toString(), "ether"))
+        })
+
+        it("Gets User Accrued Interest PerBlock", async () => {
+            let interest;
+            await pensionContract.register(cLINK,name,amountToSpend,approvedAmountToSpend,lockTime,{ from: unlockedAccount });
+            await link.methods.approve(pensionContract.address, approvedAmountToSpend).send(fromUnlockedAccount);
+			await pensionContract.updateTimeDurationOfDeposit(fromUnlockedAccount);
+            let upkeep = await pensionContract.checkUpkeep('0x');
+            // console.log(result)
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+
+            await wait(2)
+            // 2nd transaction
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+
+            interest = await pensionContract.getAccruedInterest(fromUnlockedAccount)
+            console.log("Accrued Interest per block based on deposited amount:", web3.utils.fromWei(interest.toString(), "ether"))
+
+            // await wait(5);
+
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+
+            interest = await pensionContract.getAccruedInterest(fromUnlockedAccount)
+            console.log("Accrued Interest per block based on deposited amount:", web3.utils.fromWei(interest.toString(), "ether"))
+
+            // await wait(10);
+
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+
+            interest = await pensionContract.getAccruedInterest(fromUnlockedAccount)
+            console.log("Accrued Interest per block based on deposited amount:", web3.utils.fromWei(interest.toString(), "ether"))
+
+            // await wait(15);
+            await pensionContract.performUpkeep(upkeep.upKeepData);
+
+            interest = await pensionContract.getAccruedInterest(fromUnlockedAccount)
+            console.log("Accrued Interest per block based on deposited amount:", web3.utils.fromWei(interest.toString(), "ether"))
+
+
         })
 
         it("Wthdraws Underlying Assets and Credits the Owner of the Assets", async () => {
@@ -180,6 +198,9 @@ contract('Pension Service Provider', ([owner, applicant]) => {
             balanceAfterWithdrawal = web3.utils.fromWei(balanceAfterWithdraw.toString(), "ether")
             console.log(balanceAfterWithdrawal)
             assert.equal(Number(balanceAfterWithdrawal), Number(new BN(balanceBeforeWithdrawal).add(new BN(userAmount))))
+
+            // let interest = await pensionContract.getAccruedInterest(fromUnlockedAccount)
+            // console.log("Accrued Interest per year based on deposited amount:", web3.utils.fromWei(interest.toString(), "ether"))
 
         })
     })

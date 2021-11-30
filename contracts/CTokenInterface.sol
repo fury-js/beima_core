@@ -8,4 +8,5 @@ interface CTokenInterface {
 	function borrow(uint borrowAmount) external returns (uint);
 	function repayBorrow(uint repayAmount) external returns (uint);
 	function underlying() external view returns(address);
+	function supplyRatePerBlock() external view returns (uint);
 }

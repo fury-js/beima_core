@@ -879,9 +879,9 @@ module.exports = async (callback) => {
 			console.log('Pension Provider deployed at:', pensionContract.address);
 
 			// register user
-			// result = await pensionContract.register(userDetails, nextOfKinDetails, {
-			// 	from: account,
-			// });
+			result = await pensionContract.register(userDetails, nextOfKinDetails, {
+				from: account,
+			});
 			// console.log(result.logs[0].args)
 
 			result = await usdc.methods.approve(pensionContract.address, approvedAmountToSpend).send({from: account})

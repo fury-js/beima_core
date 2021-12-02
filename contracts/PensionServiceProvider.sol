@@ -58,7 +58,6 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
         uint256 id;
         address payable userAddress;
         string  userDetails;
-        string  nextOfKinDetails;
         Client client;
 
     }
@@ -72,10 +71,11 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
 
     event Register(address indexed applicant, string indexed applicantDetails);
     event Withdraw(address from, address to, uint amount);
-    event Deposit(address user, uint amount);
+    event Deposit(address indexed sender, address receiver, uint indexed amountSpent);
     event Upkeep(address sender, bool upkeep);
-    // event MyLog(string, uint256);
+    event Plan(address user, string planDetails, uint lockTime);
     event Update(uint256 timeDuration);
+    event Transfer(address indexed sender, uint amount, address indexed receiver);
 
     mapping(address => User) public pensionServiceApplicant;
 
@@ -99,8 +99,7 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
     }
 
     function register(
-        string memory _userDetails, 
-        string memory _NextOfKinDetails
+        string memory _userDetails
         ) 
         public  {
         require(!isRegistered[msg.sender], "Caller address already exists");
@@ -122,7 +121,6 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
             id: id.current(),
             userAddress: payable(msg.sender),
             userDetails: _userDetails,
-            nextOfKinDetails: _NextOfKinDetails,
             client: client
         });
 
@@ -139,16 +137,17 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
 
 
 
-    function deposit(uint256 _amount) public payable  {
-        require(isRegistered[msg.sender], "Caller is not Registered");
-        User storage user = pensionServiceApplicant[msg.sender];
-        CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
+    function _deposit(address _asset ,uint256 _amount) internal  {
+        // require(isRegistered[msg.sender], "Caller is not Registered");
+        // User storage user = pensionServiceApplicant[msg.sender];
+        CTokenInterface cToken = CTokenInterface(_asset);
 		address underlyingAsset = cToken.underlying();
-        IERC20(underlyingAsset).transferFrom(msg.sender, address(this), _amount);
-        address cTokenaddress = user.client.underlyingAsset;
-        _supply(cTokenaddress, _amount);
-        user.client.depositedAmount = user.client.depositedAmount.add(_amount);
-        emit Deposit(msg.sender, user.client.depositedAmount);
+        // IERC20(underlyingAsset).transferFrom(msg.sender, address(this), _amount);
+        // emit Transfer(user.userAddress, address(this));
+        // address cTokenaddress = user.client.underlyingAsset;
+        _supply(_asset, _amount);
+        // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
+        emit Deposit(address(this), _asset, _amount);
 
     }
 
@@ -167,7 +166,7 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
 
 
     function _supply(address cTokenaddress, uint underlyingAmount) internal {
-        // require(isRegistered[msg.sender], "caller is not registered");
+        require(underlyingAmount > 0, "Amount Cannot be 0");
         // _enterMarket(cTokenaddress);
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);
 		address underlyingAddress = cToken.underlying();
@@ -179,80 +178,79 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
 
 
 //     // chainlink keeper function call
-    function checkUpkeep(bytes calldata /* checkData */) external view override returns(bool upKeepNeeded, bytes memory performData)   {
-        upKeepNeeded = (block.timestamp.sub(lastTimeStamp) > upKeepInterval);
-        for(uint256 i = 0; i < users.length; i++ ) {
-            User storage user = users[i];
-            if(block.timestamp.sub(user.client.startTime) > user.client.timeDurationOfdeposit) {
-                performData = abi.encode(user);            
-                // return (upKeepNeeded, performData);
-            }
-        }
-
+    function checkUpkeep(bytes calldata /* checkData */) external view override returns(bool, bytes memory)   {
+        
+        return (block.timestamp.sub(lastTimeStamp) > upKeepInterval, bytes(""));
+        // (block.timestamp.sub(lastTimeStamp) > upKeepInterval);
+        
     }
 
 
 
 
-        function performUpkeep(bytes calldata performData) external override  {
-        (User memory userData) = abi.decode(performData, (User));
+    function performUpkeep(bytes calldata performData ) external override  {
+        // User[] storage users = abi.decode(performData, (User[]));
+        for(uint256 i = 0; i < users.length - 1; i++ ) {
+            User storage  user = pensionServiceApplicant[users[i].userAddress];
+            // if(block.timestamp> 0) {
+                require(isRegistered[user.userAddress], "Address not registered");
+                require(user.client.approvedAmountToSpend > 0, "Insufficient balance cannot perform upkeep");
+                require(user.client.hasPlan, "Client has no plan");
+                 CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
 
-        User storage user = pensionServiceApplicant[userData.userAddress];
-        if(block.timestamp.sub(user.client.startTime) > user.client.timeDurationOfdeposit) {
-            // do something with the user's funds
-            require(isRegistered[user.userAddress], "Address not registered");
-            require(user.client.approvedAmountToSpend > 0, "Insufficient balance cannot perform upkeep");
-            require(user.client.hasPlan, "Client has no plan");
-            // isRegistered[user.userAddress] = false;
-            CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
+                uint amountToDeposit = user.client.amountToSpend;
+                address underlyingAsset = cToken.underlying();
+                IERC20(underlyingAsset).transferFrom(user.userAddress, address(this),  amountToDeposit);
+                uint balance = IERC20(underlyingAsset).balanceOf(address(this));
+                require(balance == amountToDeposit, "Transfer failed");
+                _deposit(user.client.underlyingAsset, balance);
+                // address cLink = 0xFAce851a4921ce59e912d19329929CE6da6EB0c7;
+                emit Transfer(user.userAddress, user.client.depositedAmount, address(this));
+                // _supply(user.client.underlyingAsset, user.client.amountToSpend);
+                user.client.depositedAmount = user.client.depositedAmount.add(amountToDeposit);
+                user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(user.client.amountToSpend);
+                user.client.startTime = block.timestamp;
+                user.client.userLastRewardBlock = user.client.userLastRewardBlock.add(block.number);
+                ccInterest = ccInterest.mul(block.number).div(1e8);
+                lastTimeStamp = block.timestamp;
 
-            uint amountToDeposit = user.client.amountToSpend;
-            address underlyingAsset = cToken.underlying();
-            IERC20(underlyingAsset).transferFrom(user.userAddress, address(this),  amountToDeposit);
-            // address cLink = 0xFAce851a4921ce59e912d19329929CE6da6EB0c7;
-            _supply(user.client.underlyingAsset, user.client.amountToSpend);
-            user.client.depositedAmount = user.client.depositedAmount.add(amountToDeposit);
-            user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(user.client.amountToSpend);
-            user.client.startTime = block.timestamp;
-            user.client.userLastRewardBlock = user.client.userLastRewardBlock.add(block.number);
-            ccInterest = ccInterest.mul(block.number).div(1e8);
-            lastTimeStamp = block.timestamp;
-
-            emit Deposit(user.userAddress, user.client.amountToSpend);
-
+                emit Deposit(user.userAddress, address(this), user.client.depositedAmount);
+            // }
         }
-
     }
 
 
 
     function withdraw() public {
         require(isRegistered[msg.sender], "Caller not registered");
-        require(pensionServiceApplicant[msg.sender].client.depositedAmount > 0, "Insufficient Balance");
-        require(pensionServiceApplicant[msg.sender].client.hasPlan, "Caller has no plan");
 
         // Point to the User in Storage
         User storage user = pensionServiceApplicant[msg.sender];
+        // require(user.client.depositedAmount > 0, "Insufficient Balance");
+        // require(user.client.hasPlan, "Caller has no plan");
 
         if(block.timestamp < user.client.lockTime) {
-            require(user.client.depositedAmount > 0, "insufficient balance");
-            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
-            // isRegistered[msg.sender] = false;
-            uint amountToSend = user.client.depositedAmount.div(2);
+            // require(user.client.depositedAmount > 0, "insufficient balance");
             CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
             address underlyingAsset = cToken.underlying();
+            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
+            uint balance = IERC20(underlyingAsset).balanceOf(address(this));
+            require(balance == user.client.depositedAmount, 'Balance too low');
+            // isRegistered[msg.sender] = false;
+            uint amountToSend = user.client.depositedAmount.div(2);
             IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
             user.client.depositedAmount = 0;
             user.client.userLastRewardBlock = block.number;
             ccInterest = ccInterest.add(block.number).div(1e8);
             emit Withdraw(address(this), msg.sender, amountToSend);
         } else {
-            require(user.client.depositedAmount > 0, "insufficient balance");
-            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
-            // isRegistered[msg.sender] = false;
-            uint amountToSend = user.client.depositedAmount;
             CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
             address underlyingAsset = cToken.underlying();
+            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
+            uint balance = IERC20(underlyingAsset).balanceOf(address(this));
+            require(balance == user.client.depositedAmount, 'Balance too low');
+            // isRegistered[msg.sender] = false;
+            uint amountToSend = user.client.depositedAmount;
             IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
             user.client.depositedAmount = 0;
             user.client.userLastRewardBlock = block.number;
@@ -267,6 +265,7 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
 
 
     function _redeem(address cTokenaddress, uint tokenAmount) internal {
+        require(tokenAmount > 0, 'Account cannot be 0');
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);
 		uint result = cToken.redeemUnderlying(tokenAmount);
 		require(result == 0, 'cToken#redeem() failed. see Compound ErrorReporter.sol');
@@ -276,11 +275,16 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
     function updateTimeDurationOfDeposit() public  {
         User storage user = pensionServiceApplicant[msg.sender];
         require(isRegistered[user.userAddress], "Caller is not registered");
-        user.client.timeDurationOfdeposit = 5;
+        user.client.timeDurationOfdeposit = 0;
         emit Update(user.client.timeDurationOfdeposit);
     } 
 
-    function setPlan(address _underlyingAsset, string memory _ipfsHashOfUserPensionDetails, uint _approvedAmountToSpend, uint _amountToSpend, uint _timeDurationOfDeposit, uint _lockTime) public {
+    function setPlan(
+        address _underlyingAsset, 
+        string memory _ipfsHashOfUserPensionDetails, 
+        uint _approvedAmountToSpend, uint _amountToSpend, 
+        uint _timeDurationOfDeposit, uint _lockTime) 
+        public {
         require(_approvedAmountToSpend > _amountToSpend, "Set an amount greater than the recurring amount");
         require(_amountToSpend > 0, "approve an amount greater than 0");
         require(isRegistered[msg.sender], "Caller has to be Registered");
@@ -293,6 +297,8 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
         user.client.approvedAmountToSpend = _approvedAmountToSpend;
         user.client.amountToSpend = _amountToSpend;
         user.client.hasPlan = true;
+
+        emit Plan(msg.sender, user.client.ipfsHashOfUserPensionDetails, user.client.lockTime);
     }
 
 
@@ -315,7 +321,7 @@ contract PensionServiceProvider is KeeperCompatibleInterface {
         xendFinance.deposit();
         user.client.depositedAmount = user.client.depositedAmount.add(_amount);
 
-        emit Deposit(msg.sender, user.client.depositedAmount);
+        emit Deposit(msg.sender, address(xend), user.client.depositedAmount);
         
     }
 

@@ -790,6 +790,9 @@ const BUSD_ABI_BSC = [
 		type: 'function',
 	},
 ];
+
+const USDC_ADDRESS_KOVAN = "0xb7a4F3E9097C08dA09517b5aB877F7a917224ede"
+const USDC_ABI_KOVAN = [{"inputs":[{"internalType":"uint256","name":"_initialAmount","type":"uint256"},{"internalType":"string","name":"_tokenName","type":"string"},{"internalType":"uint8","name":"_decimalUnits","type":"uint8"},{"internalType":"string","name":"_tokenSymbol","type":"string"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"constant":false,"inputs":[{"internalType":"address","name":"_owner","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"allocateTo","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"dst","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"src","type":"address"},{"internalType":"address","name":"dst","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]
 const PensionServiceProvider = artifacts.require("PensionServiceProvider");
 const LINK_ADDRESS = "0x514910771AF9Ca656af840dff83E8264EcF986CA"
 const LINK_ABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"},{"name":"_data","type":"bytes"}],"name":"transferAndCall","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_subtractedValue","type":"uint256"}],"name":"decreaseApproval","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_addedValue","type":"uint256"}],"name":"increaseApproval","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"},{"indexed":false,"name":"data","type":"bytes"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"}]
@@ -823,10 +826,12 @@ const xendOnEthereum = '0xE4CFE9eAa8Cdb0942A80B7bC68fD8Ab0F6D44903';
 
 const xendOnBsc = '0x4a080377f83d669d7bb83b3184a8a5e61b500608';
 
+
 // link contract instance
     const link = new web3.eth.Contract(LINK_ABI, LINK_ADDRESS);
     const busd = new web3.eth.Contract(BUSD_ABI, BUSD_ADDRESS);
     const busdBsc = new web3.eth.Contract(BUSD_ABI_BSC, BUSD_ADDRESS_BSC)
+	const usdc = new web3.eth.Contract(USDC_ABI_KOVAN, USDC_ADDRESS_KOVAN)
     
 // clink contract instance
     const clink = new web3.eth.Contract(cLINK_ABI, cLINK);
@@ -853,16 +858,20 @@ module.exports = async (callback) => {
 			let result;
 			let balanceBefore;
 			let balanceAfter;
+			let pensionPlanDetails = "Flexible";
 
-			let id = 1;
-			let name = 'JUHEL INDUSTRIES';
-			let amountToSpend = 1000000000; // 100 mbusd
-			let approvedAmountToSpend = 1000000000000000000; // 1000 mbusd
+
+			// let id = 1;
+			let userDetails = 'JUHEL INDUSTRIES';
+			let nextOfKinDetails = "chukky"
+			let amountToSpend = web3.utils.toWei("10", 'ether');  // 1 usdc tokens; // 100 mbusd
+			let approvedAmountToSpend = web3.utils.toWei("100", 'ether');  // 100 usdc tokens; // 1000 mbusd
 			let lockTime = 30;
-			let timeDuration = 1;
+			let timeDuration = 50;
 
 			//fetch accounts from wallet- these are unlocked
 			const accounts = await web3.eth.getAccounts();
+			const account = accounts[0]
 			// console.log('accounts', accounts)
 
 			const pensionContract = await PensionServiceProvider.deployed();
@@ -870,12 +879,30 @@ module.exports = async (callback) => {
 			console.log('Pension Provider deployed at:', pensionContract.address);
 
 			// register user
-			// result = await pensionContract.register(cLINK, name, 100, 100, {
-			// 	from: binanceAccount,
+			// result = await pensionContract.register(userDetails, nextOfKinDetails, {
+			// 	from: account,
 			// });
 			// console.log(result.logs[0].args)
 
-			await wait(1);
+			result = await usdc.methods.approve(pensionContract.address, approvedAmountToSpend).send({from: account})
+			// console.log(result)
+
+			await wait(5);
+
+			result = await pensionContract.setPlan(
+						cUSDC, 
+						pensionPlanDetails, 
+						approvedAmountToSpend, 
+						amountToSpend, 
+						timeDuration, 
+						lockTime, { from: account} 
+					)
+
+			result = await pensionContract.updateTimeDurationOfDeposit({from: account})
+
+			console.log(result)
+
+
 
 			// console.log(100 * 10 ** 18)
 
@@ -929,13 +956,13 @@ module.exports = async (callback) => {
 			// testing xend finance
 
 			// check balance before supply
-			balanceBefore = await busdBsc.methods.balanceOf(binanceAccount).call()
-			console.log("busd balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
+			// balanceBefore = await busdBsc.methods.balanceOf(binanceAccount).call()
+			// console.log("busd balance before supply:", web3.utils.fromWei(balanceBefore.toString(), "ether"));
 
-			let b = await busdBsc.methods
-				.allowance(pensionContract.address)
-				.cal();
-            console.log(b)
+			// let b = await busdBsc.methods
+			// 	.allowance(pensionContract.address)
+			// 	.cal();
+            // console.log(b)
 
 			// let result2 = await pensionContract.depositToXendFinance(100 * 100, fromUnlockedBinanceAccount);
 			// console.log(result2.logs);

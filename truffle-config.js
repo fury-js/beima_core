@@ -49,6 +49,8 @@ module.exports = {
 			host: '127.0.0.1', // Localhost (default: none)
 			port: 8545, // Standard Ethereum port (default: none)
 			network_id: '*', // Any network (default: none)
+			networkCheckTimeout: 1000000,
+			timeoutBlocks: 200
 		},
 		kovan: {
 			provider: () => {
@@ -78,7 +80,7 @@ module.exports = {
 		rinkeby: {
 			provider: new HDWalletProvider(
 				process.env.MNEMONIC,
-				process.env.ALCHEMY_API,
+				process.env.INFURA_WEBSOCKET,
 			),
 			network_id: 4,
 			gas: 4500000,

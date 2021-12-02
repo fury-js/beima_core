@@ -9,6 +9,7 @@ module.exports = async function (deployer, network, accounts) {
     const priceOracleAddressKovan = "0x37ac0cb24b5DA520B653A5D94cFF26EB08d4Dc02"
     const cEth = "0x41B5844f4680a8C38fBb695b7F9CFd1F64474a72"
     const xend = '0xE4CFE9eAa8Cdb0942A80B7bC68fD8Ab0F6D44903';
+    const upkeepInterval = 30;
 
 
         // await deployer.deploy(BUSD);
@@ -20,6 +21,7 @@ module.exports = async function (deployer, network, accounts) {
 					comptrollerAddressKovan,
 					priceOracleAddressKovan,
 					priceOracleAddressMainnet,
+          upkeepInterval
 				);
         const pensionContract = await PensionServiceProvider.deployed()
 

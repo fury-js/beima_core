@@ -16,7 +16,7 @@ import "./XendFinanceInterface.sol";
 
 // approve the user's underlying asset to be able to use the chainklink keepers
 
-contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, ReentrancyGuard, Ownable {
+contract PensionServiceProvider is KeeperCompatibleInterface {
     using SafeMath for uint;
     using Counters for Counters.Counter;
 
@@ -30,17 +30,17 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
     XendFinanceInterface public xendFinance;
     IERC20 public xend;
 
+    uint public lastTimeStamp;
+    uint public upKeepInterval;
+
+
 
     
 
 
 
-    // A user Object
-    struct User {
-        uint256 id;
+    struct Client {
         address underlyingAsset;
-        address payable userAddress;
-        string  userDetails;
         uint256 depositedAmount;
         uint256 amountToSpend;
         uint256 approvedAmountToSpend;
@@ -49,16 +49,32 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
         uint256 lockTime;
         string ipfsHashOfUserPensionDetails;
         uint256 userLastRewardBlock;
+        bool hasPlan;
     }
+
+
+    // A user Object
+    struct User {
+        uint256 id;
+        address payable userAddress;
+        string  userDetails;
+        string  nextOfKinDetails;
+        Client client;
+
+    }
+
+
+
+    
 
     
 
 
-    event Register(address applicant, string applicantDetails, uint approvedAmountByApplicant, uint lockTime);
+    event Register(address indexed applicant, string indexed applicantDetails);
     event Withdraw(address from, address to, uint amount);
     event Deposit(address user, uint amount);
     event Upkeep(address sender, bool upkeep);
-    event MyLog(string, uint256);
+    // event MyLog(string, uint256);
     event Update(uint256 timeDuration);
 
     mapping(address => User) public pensionServiceApplicant;
@@ -69,41 +85,48 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
     User[] public users;
 
 
-    constructor(address _xend, address _xendFinanceIndividual_Yearn_V1,  address _comptroller, address _priceOracle )  {
+    constructor(address _xend, address _xendFinanceIndividual_Yearn_V1,  address _comptroller, address _priceOracle, uint _upKeepInterval)  {
         xend = IERC20(_xend);
         comptroller = ComptrollerInterface(_comptroller);
 		priceOracle = PriceOracleInterface(_priceOracle);
         xendFinance = XendFinanceInterface(_xendFinanceIndividual_Yearn_V1);
         ccInterest = uint256(3 ether).div(10); // .3% 
+        lastTimeStamp = block.timestamp;
+        upKeepInterval = _upKeepInterval;
 
         id.increment();
         
     }
 
     function register(
-        address _underlyingAsset,
         string memory _userDetails, 
-        uint256 _amountToSpend,
-        uint256 _approvedAmountToSpend,
-        uint256 _timeDurationOfDeposit
+        string memory _NextOfKinDetails
         ) 
-        public whenNotPaused() {
+        public  {
         require(!isRegistered[msg.sender], "Caller address already exists");
+
+        Client memory client = Client({
+            underlyingAsset: address(0),
+            depositedAmount: 0,
+            amountToSpend: 0,
+            approvedAmountToSpend: 0,
+            startTime: block.timestamp,
+            timeDurationOfdeposit: 0,
+            lockTime: 0,
+            ipfsHashOfUserPensionDetails: "",
+            userLastRewardBlock: block.number,
+            hasPlan: false
+        });
 
         User memory user = User({
             id: id.current(),
             userAddress: payable(msg.sender),
-            underlyingAsset: _underlyingAsset,
             userDetails: _userDetails,
-            depositedAmount: 0,
-            amountToSpend: _amountToSpend,
-            approvedAmountToSpend: _approvedAmountToSpend,
-            startTime: block.timestamp,
-            timeDurationOfdeposit: block.timestamp.add(_timeDurationOfDeposit),
-            lockTime: 0,
-            ipfsHashOfUserPensionDetails: "",
-            userLastRewardBlock: block.number
+            nextOfKinDetails: _NextOfKinDetails,
+            client: client
         });
+
+       
 
         pensionServiceApplicant[msg.sender] = user;
         users.push(user);
@@ -111,32 +134,32 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
 
         id.increment();
 
-        emit Register(msg.sender, user.userDetails, user.amountToSpend, user.lockTime);
+        emit Register(msg.sender, user.userDetails);
     }
 
 
 
-    function deposit(uint256 _amount) public payable whenNotPaused() {
+    function deposit(uint256 _amount) public payable  {
         require(isRegistered[msg.sender], "Caller is not Registered");
         User storage user = pensionServiceApplicant[msg.sender];
-        CTokenInterface cToken = CTokenInterface(user.underlyingAsset);
+        CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
 		address underlyingAsset = cToken.underlying();
         IERC20(underlyingAsset).transferFrom(msg.sender, address(this), _amount);
-        address cTokenaddress = user.underlyingAsset;
+        address cTokenaddress = user.client.underlyingAsset;
         _supply(cTokenaddress, _amount);
-        user.depositedAmount = user.depositedAmount.add(_amount);
-        emit Deposit(msg.sender, user.depositedAmount);
+        user.client.depositedAmount = user.client.depositedAmount.add(_amount);
+        emit Deposit(msg.sender, user.client.depositedAmount);
 
     }
 
 
 
-    function _enterMarket(address _cTokenaddress) internal {
-		address[] memory markets = new address[](1);
-		markets[0] = _cTokenaddress;
-		uint[] memory results = comptroller.enterMarkets(markets);
-		require( results[0] == 0, 'comptroller#enterMarkets() failed. see Compound ErrorReporter.sol');
-	}
+//     function _enterMarket(address _cTokenaddress) internal {
+// 		address[] memory markets = new address[](1);
+// 		markets[0] = _cTokenaddress;
+// 		uint[] memory results = comptroller.enterMarkets(markets);
+// 		require( results[0] == 0, 'comptroller#enterMarkets() failed. see Compound ErrorReporter.sol');
+// 	}
 
 
 
@@ -155,96 +178,47 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
 	}
 
 
-    // chainlink keeper function call
-    function checkUpkeep(bytes calldata) external view override whenNotPaused() returns(bool upkeep, bytes memory upKeepData)   {
-
+//     // chainlink keeper function call
+    function checkUpkeep(bytes calldata /* checkData */) external view override returns(bool upKeepNeeded, bytes memory performData)   {
+        upKeepNeeded = (block.timestamp.sub(lastTimeStamp) > upKeepInterval);
         for(uint256 i = 0; i < users.length; i++ ) {
             User storage user = users[i];
-            if(block.timestamp.add(user.startTime) > user.timeDurationOfdeposit) {
-                bytes memory Data = abi.encode(user);
-                bool upKeep = true;
-                // performUpkeep(upKeepData);
-                // users[i].startTime = block.timestamp;
-                return (upKeep, Data);
+            if(block.timestamp.sub(user.client.startTime) > user.client.timeDurationOfdeposit) {
+                performData = abi.encode(user);            
+                // return (upKeepNeeded, performData);
             }
         }
 
     }
 
 
-    // fallback function for chainlink keepers
-    // function performUpkeep(bytes calldata upKeepData) external override whenNotPaused()  {
-    //     (User memory userData) = abi.decode(upKeepData, (User));
-
-    //     User storage user = pensionServiceApplicant[userData.userAddress];
-    //     if(block.timestamp > user.lockTime) {
-    //         // do something with the user
-    //         require(isRegistered[user.userAddress], "Address not registered");
-    //         require(user.depositedAmount > 0, "Insufficient balance cannot perform upkeep");
-    //         isRegistered[user.userAddress] = false;
-    //         CTokenInterface cToken = CTokenInterface(user.underlyingAsset);
-
-    //         uint amountToSend = user.depositedAmount;
-    //         address underlyingAsset = cToken.underlying();
-    //         IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
-    //         user.depositedAmount = 0;
-
-    //         emit Withdraw(address(this), user.userAddress, amountToSend);
-            
-    //         // busd.transferFrom(payable(user.userAddress), address(this), user.amountToSpend);
-    //         // (bool success,) = payable(user.userAddress).transfer(address(this), user.amountToSpend)("");
-    //         // require(success, "Transfer to contract not successful");
-    //         // do something with Xend protocol. or compound finance
 
 
-    //         // user.approvedAmountToSpend = user.approvedAmountToSpend - user.amountToSpend;
-    //         // user.depositedAmount = user.depositedAmount + user.amountToSpend;
-    //         // user.startTime = block.timestamp;
-
-    //         // emit Deposit(user.id, user.userDetails, user.lockTime, user.approvedAmountToSpend);
-
-    //     }
-
-    // }
-
-        function performUpkeep(bytes calldata upKeepData) external override whenNotPaused()  {
-        (User memory userData) = abi.decode(upKeepData, (User));
+        function performUpkeep(bytes calldata performData) external override  {
+        (User memory userData) = abi.decode(performData, (User));
 
         User storage user = pensionServiceApplicant[userData.userAddress];
-        if(block.timestamp.add(user.startTime) > user.timeDurationOfdeposit) {
+        if(block.timestamp.sub(user.client.startTime) > user.client.timeDurationOfdeposit) {
             // do something with the user's funds
             require(isRegistered[user.userAddress], "Address not registered");
-            require(user.approvedAmountToSpend > 0, "Insufficient balance cannot perform upkeep");
+            require(user.client.approvedAmountToSpend > 0, "Insufficient balance cannot perform upkeep");
+            require(user.client.hasPlan, "Client has no plan");
             // isRegistered[user.userAddress] = false;
-            CTokenInterface cToken = CTokenInterface(user.underlyingAsset);
+            CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
 
-            uint amountToDeposit = user.amountToSpend;
+            uint amountToDeposit = user.client.amountToSpend;
             address underlyingAsset = cToken.underlying();
             IERC20(underlyingAsset).transferFrom(user.userAddress, address(this),  amountToDeposit);
             // address cLink = 0xFAce851a4921ce59e912d19329929CE6da6EB0c7;
-            _supply(user.underlyingAsset, user.amountToSpend);
-            user.depositedAmount = user.depositedAmount.add(amountToDeposit);
-            user.approvedAmountToSpend = user.approvedAmountToSpend.sub(user.amountToSpend);
-            user.startTime = block.timestamp;
-            user.userLastRewardBlock = user.userLastRewardBlock.add(block.number);
+            _supply(user.client.underlyingAsset, user.client.amountToSpend);
+            user.client.depositedAmount = user.client.depositedAmount.add(amountToDeposit);
+            user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(user.client.amountToSpend);
+            user.client.startTime = block.timestamp;
+            user.client.userLastRewardBlock = user.client.userLastRewardBlock.add(block.number);
             ccInterest = ccInterest.mul(block.number).div(1e8);
+            lastTimeStamp = block.timestamp;
 
-            emit Deposit(user.userAddress, user.amountToSpend);
-
-
-            // emit Withdraw(address(this), user.userAddress, amountToSend);
-            
-            // busd.transferFrom(payable(user.userAddress), address(this), user.amountToSpend);
-            // (bool success,) = payable(user.userAddress).transfer(address(this), user.amountToSpend)("");
-            // require(success, "Transfer to contract not successful");
-            // do something with Xend protocol. or compound finance
-
-
-            // user.approvedAmountToSpend = user.approvedAmountToSpend - user.amountToSpend;
-            // user.depositedAmount = user.depositedAmount + user.amountToSpend;
-            // user.startTime = block.timestamp;
-
-            // emit Deposit(user.id, user.userDetails, user.lockTime, user.approvedAmountToSpend);
+            emit Deposit(user.userAddress, user.client.amountToSpend);
 
         }
 
@@ -252,43 +226,44 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
 
 
 
-    function withdraw() public whenNotPaused() nonReentrant() {
+    function withdraw() public {
         require(isRegistered[msg.sender], "Caller not registered");
-        require(pensionServiceApplicant[msg.sender].depositedAmount > 0, "Insufficient Balance");
+        require(pensionServiceApplicant[msg.sender].client.depositedAmount > 0, "Insufficient Balance");
+        require(pensionServiceApplicant[msg.sender].client.hasPlan, "Caller has no plan");
 
         // Point to the User in Storage
         User storage user = pensionServiceApplicant[msg.sender];
 
-        if(block.timestamp < user.lockTime) {
-            require(user.depositedAmount > 0, "insufficient balance");
-            _redeem(user.underlyingAsset, user.depositedAmount);
+        if(block.timestamp < user.client.lockTime) {
+            require(user.client.depositedAmount > 0, "insufficient balance");
+            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
             // isRegistered[msg.sender] = false;
-            uint amountToSend = user.depositedAmount.div(2);
-            CTokenInterface cToken = CTokenInterface(user.underlyingAsset);
+            uint amountToSend = user.client.depositedAmount.div(2);
+            CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
             address underlyingAsset = cToken.underlying();
             IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
-            user.depositedAmount = 0;
-            user.userLastRewardBlock = block.number;
+            user.client.depositedAmount = 0;
+            user.client.userLastRewardBlock = block.number;
             ccInterest = ccInterest.add(block.number).div(1e8);
             emit Withdraw(address(this), msg.sender, amountToSend);
         } else {
-            require(user.depositedAmount > 0, "insufficient balance");
-            _redeem(user.underlyingAsset, user.depositedAmount);
+            require(user.client.depositedAmount > 0, "insufficient balance");
+            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
             // isRegistered[msg.sender] = false;
-            uint amountToSend = user.depositedAmount;
-            CTokenInterface cToken = CTokenInterface(user.underlyingAsset);
+            uint amountToSend = user.client.depositedAmount;
+            CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
             address underlyingAsset = cToken.underlying();
             IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
-            user.depositedAmount = 0;
-            user.userLastRewardBlock = block.number;
+            user.client.depositedAmount = 0;
+            user.client.userLastRewardBlock = block.number;
 
             emit Withdraw(address(this), msg.sender, amountToSend);
         }
 
-        // require(block.timestamp > user.lockTime, "Early withdrawal will cost you 50% of your initial deposit");
+//         // require(block.timestamp > user.lockTime, "Early withdrawal will cost you 50% of your initial deposit");
 
 
-    }
+}
 
 
     function _redeem(address cTokenaddress, uint tokenAmount) internal {
@@ -301,52 +276,59 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
     function updateTimeDurationOfDeposit() public  {
         User storage user = pensionServiceApplicant[msg.sender];
         require(isRegistered[user.userAddress], "Caller is not registered");
-        user.timeDurationOfdeposit = 0;
-        emit Update(user.timeDurationOfdeposit);
+        user.client.timeDurationOfdeposit = 5;
+        emit Update(user.client.timeDurationOfdeposit);
     } 
 
-    function setLockTime(string memory _ipfsHashOfUserPensionDetails, uint _lockTime) public {
+    function setPlan(address _underlyingAsset, string memory _ipfsHashOfUserPensionDetails, uint _approvedAmountToSpend, uint _amountToSpend, uint _timeDurationOfDeposit, uint _lockTime) public {
+        require(_approvedAmountToSpend > _amountToSpend, "Set an amount greater than the recurring amount");
+        require(_amountToSpend > 0, "approve an amount greater than 0");
         require(isRegistered[msg.sender], "Caller has to be Registered");
         User storage user = pensionServiceApplicant[msg.sender];
-        require(user.lockTime == 0, "Caller already has a lock Time Set");
-        user.lockTime = block.timestamp + _lockTime;
-        user.ipfsHashOfUserPensionDetails = _ipfsHashOfUserPensionDetails;
+        require(user.client.lockTime == 0, "Caller already has a lock Time Set");
+        user.client.underlyingAsset = _underlyingAsset;
+        user.client.lockTime = block.timestamp + _lockTime;
+        user.client.timeDurationOfdeposit = block.timestamp.add(_timeDurationOfDeposit);
+        user.client.ipfsHashOfUserPensionDetails = _ipfsHashOfUserPensionDetails;
+        user.client.approvedAmountToSpend = _approvedAmountToSpend;
+        user.client.amountToSpend = _amountToSpend;
+        user.client.hasPlan = true;
     }
 
 
 
-    // for Xend
+//     // for Xend
 
     function getXendPendingRewards(address _user) public view returns(uint) {
         User storage user = pensionServiceApplicant[_user];
         uint256 accXendRewards = xendFinance.GetMemberXendTokenReward(address(this));
-        uint256 userPendingRewards = user.depositedAmount.mul(accXendRewards).div(1e8);
+        uint256 userPendingRewards = user.client.depositedAmount.mul(accXendRewards).div(1e8);
 
         return userPendingRewards;
     }
 
 
 
-    function depositToXendFinance(uint _amount) public whenNotPaused() {
+    function depositToXendFinance(uint _amount) public  {
         // require(isRegistered[msg.sender], "Caller not Registered");
         User storage user = pensionServiceApplicant[msg.sender];
         xendFinance.deposit();
-        user.depositedAmount = user.depositedAmount.add(_amount);
+        user.client.depositedAmount = user.client.depositedAmount.add(_amount);
 
-        emit Deposit(msg.sender, user.depositedAmount);
+        emit Deposit(msg.sender, user.client.depositedAmount);
         
     }
 
 
 
-    function withdrawFromXendFinance() public whenNotPaused() nonReentrant() {
+    function withdrawFromXendFinance() public {
         require(isRegistered[msg.sender], "Caller not Registered");
         User storage user = pensionServiceApplicant[msg.sender];
-        xendFinance.withdraw(user.depositedAmount);
+        xendFinance.withdraw(user.client.depositedAmount);
         uint256 xendBalance = xend.balanceOf(address(this));
-        require(xendBalance > user.depositedAmount, "Withdrawing more than you deposited");
+        require(xendBalance > user.client.depositedAmount, "Withdrawing more than you deposited");
         accXendTokens = xendBalance;
-        uint256 accXendTokensforUser = user.depositedAmount.mul(accXendTokens).div(1e8);
+        uint256 accXendTokensforUser = user.client.depositedAmount.mul(accXendTokens).div(1e8);
         xend.transfer(msg.sender, accXendTokensforUser);
 
     }
@@ -354,9 +336,9 @@ contract PensionServiceProvider is KeeperCompatibleInterface, Pausable, Reentran
     function getAccruedInterest() public view returns(uint) {
         User storage user = pensionServiceApplicant[msg.sender];
         require(isRegistered[user.userAddress], "Caller not registered");
-        CTokenInterface ctoken = CTokenInterface(user.underlyingAsset);
+        CTokenInterface ctoken = CTokenInterface(user.client.underlyingAsset);
         uint supplyRatePerBlock = ctoken.supplyRatePerBlock();
-        uint accInterest = user.depositedAmount.mul(supplyRatePerBlock).div(ccInterest).div(1e8);
+        uint accInterest = user.client.depositedAmount.mul(supplyRatePerBlock).div(ccInterest).div(1e8);
         return accInterest;
     }
 }

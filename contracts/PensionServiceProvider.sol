@@ -132,12 +132,12 @@ contract PensionServiceProvider {
 
         id.increment();
 
-        emit Register(msg.sender, user.userDetails);
+        emit Register(msg.sender, _userDetails);
     }
 
 
 
-    function deposit(address _asset ,uint256 _amount) public  {
+    function deposit(address _asset ,uint256 _amount) public payable {
         require(isRegistered[msg.sender], "Caller is not Registered");
         User storage user = pensionServiceApplicant[msg.sender];
         CTokenInterface cToken = CTokenInterface(_asset);
@@ -146,14 +146,14 @@ contract PensionServiceProvider {
         uint balance = IERC20(underlyingAsset).balanceOf(address(this));
         require(balance >= _amount, "Transfer failed");
         address cTokenaddress = user.client.underlyingAsset;
-        _supply(cTokenaddress, _amount);
         user.client.depositedAmount = user.client.depositedAmount.add(_amount);
-        // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
         user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(user.client.amountToSpend);
         user.client.startTime = block.timestamp;
         user.client.userLastRewardBlock = user.client.userLastRewardBlock.add(block.number);
         ccInterest = ccInterest.mul(block.number);
         lastTimeStamp = block.timestamp;
+        _supply(_asset, _amount);
+        // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
         emit Deposit(address(this), underlyingAsset, _amount);
 
     }
@@ -233,7 +233,7 @@ contract PensionServiceProvider {
     function withdraw() public {
         require(isRegistered[msg.sender], "Caller not registered");
 
-        // Point to the User in Storage
+        // Point to the User in memory
         User memory user = pensionServiceApplicant[msg.sender];
         // require(user.client.depositedAmount > 0, "Insufficient Balance");
         // require(user.client.hasPlan, "Caller has no plan");
@@ -260,7 +260,7 @@ contract PensionServiceProvider {
             require(balance == user.client.depositedAmount, 'Balance too low');
             // isRegistered[msg.sender] = false;
             uint amountToSend = user.client.depositedAmount;
-            IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
+            IERC20(underlyingAsset).transfer(user.userAddress, user.client.depositedAmount);
             user.client.depositedAmount = 0;
             user.client.userLastRewardBlock = block.number;
 
@@ -282,7 +282,7 @@ contract PensionServiceProvider {
 
     // helper function for testing keepers
     function updateTimeDurationOfDeposit() public  {
-        User storage user = pensionServiceApplicant[msg.sender];
+        User memory user = pensionServiceApplicant[msg.sender];
         require(isRegistered[user.userAddress], "Caller is not registered");
         user.client.timeDurationOfdeposit = 0;
         emit Update(user.client.timeDurationOfdeposit);
@@ -291,8 +291,10 @@ contract PensionServiceProvider {
     function setPlan(
         address _underlyingAsset, 
         string memory _ipfsHashOfUserPensionDetails, 
-        uint _approvedAmountToSpend, uint _amountToSpend, 
-        uint _timeDurationOfDeposit, uint _lockTime) 
+        uint _approvedAmountToSpend, 
+        uint _amountToSpend, 
+        uint _timeDurationOfDeposit, 
+        uint _lockTime) 
         public {
         require(_approvedAmountToSpend > _amountToSpend, "Set an amount greater than the recurring amount");
         require(_amountToSpend > 0, "approve an amount greater than 0");
@@ -300,7 +302,7 @@ contract PensionServiceProvider {
         User storage user = pensionServiceApplicant[msg.sender];
         require(user.client.lockTime == 0, "Caller already has a lock Time Set");
         user.client.underlyingAsset = _underlyingAsset;
-        user.client.lockTime = block.timestamp + _lockTime;
+        user.client.lockTime = _lockTime;
         user.client.timeDurationOfdeposit = block.timestamp.add(_timeDurationOfDeposit);
         user.client.ipfsHashOfUserPensionDetails = _ipfsHashOfUserPensionDetails;
         user.client.approvedAmountToSpend = _approvedAmountToSpend;
@@ -315,7 +317,7 @@ contract PensionServiceProvider {
 //     // for Xend
 
     function getXendPendingRewards(address _user) public view returns(uint) {
-        User storage user = pensionServiceApplicant[_user];
+        User memory user = pensionServiceApplicant[_user];
         uint256 accXendRewards = xendFinance.GetMemberXendTokenReward(address(this));
         uint256 userPendingRewards = user.client.depositedAmount.mul(accXendRewards).div(1e8);
 
@@ -326,7 +328,7 @@ contract PensionServiceProvider {
 
     function depositToXendFinance(uint _amount) public  {
         // require(isRegistered[msg.sender], "Caller not Registered");
-        User storage user = pensionServiceApplicant[msg.sender];
+        User memory user = pensionServiceApplicant[msg.sender];
         xendFinance.deposit();
         user.client.depositedAmount = user.client.depositedAmount.add(_amount);
 
@@ -338,7 +340,7 @@ contract PensionServiceProvider {
 
     function withdrawFromXendFinance() public {
         require(isRegistered[msg.sender], "Caller not Registered");
-        User storage user = pensionServiceApplicant[msg.sender];
+        User memory user = pensionServiceApplicant[msg.sender];
         xendFinance.withdraw(user.client.depositedAmount);
         uint256 xendBalance = xend.balanceOf(address(this));
         require(xendBalance > user.client.depositedAmount, "Withdrawing more than you deposited");
@@ -349,7 +351,7 @@ contract PensionServiceProvider {
     }
 
     function getAccruedInterest() public view returns(uint) {
-        User storage user = pensionServiceApplicant[msg.sender];
+        User memory user = pensionServiceApplicant[msg.sender];
         require(isRegistered[user.userAddress], "Caller not registered");
         CTokenInterface ctoken = CTokenInterface(user.client.underlyingAsset);
         uint supplyRatePerBlock = ctoken.supplyRatePerBlock();

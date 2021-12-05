@@ -19,9 +19,9 @@ module.exports = async function (deployer, network, accounts) {
 					PensionServiceProvider,
 					xend,
 					comptrollerAddressKovan,
+					comptrollerAddressKovan,
 					priceOracleAddressKovan,
-					priceOracleAddressMainnet,
-          upkeepInterval
+					upkeepInterval,
 				);
         const pensionContract = await PensionServiceProvider.deployed()
 

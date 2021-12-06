@@ -16,7 +16,7 @@ import "./XendFinanceInterface.sol";
 
 // approve the user's underlying asset to be able to use the chainklink keepers
 
-contract PensionServiceProvider {
+contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
     using SafeMath for uint;
     using Counters for Counters.Counter;
 
@@ -24,11 +24,13 @@ contract PensionServiceProvider {
     ComptrollerInterface public comptroller;
 	PriceOracleInterface public priceOracle;
     Counters.Counter private id;
+    uint balance;
 
     uint accXendTokens;
     uint256 ccInterest;
     XendFinanceInterface public xendFinance;
     IERC20 public xend;
+    IERC20 public busd;
 
     uint public lastTimeStamp;
     uint public upKeepInterval;
@@ -76,6 +78,7 @@ contract PensionServiceProvider {
     event Plan(address user, string planDetails, uint lockTime);
     event Update(uint256 timeDuration);
     event Transfer(address indexed sender, uint amount, address indexed receiver);
+    event MyLog(string, uint256);
 
     mapping(address => User) public pensionServiceApplicant;
 
@@ -96,6 +99,11 @@ contract PensionServiceProvider {
 
         id.increment();
         
+    }
+
+
+    receive() external payable {
+        balance = msg.value;
     }
 
     function register(
@@ -137,7 +145,7 @@ contract PensionServiceProvider {
 
 
 
-    function deposit(address _asset ,uint256 _amount) public payable {
+    function deposit(address _asset ,uint256 _amount) public nonReentrant() payable {
         require(isRegistered[msg.sender], "Caller is not Registered");
         User storage user = pensionServiceApplicant[msg.sender];
         CTokenInterface cToken = CTokenInterface(_asset);
@@ -172,7 +180,7 @@ contract PensionServiceProvider {
 
 
 
-    function _supply(address cTokenaddress, uint underlyingAmount) internal {
+    function _supply(address cTokenaddress, uint underlyingAmount) internal returns(uint) {
         require(underlyingAmount > 0, "Amount Cannot be 0");
         // _enterMarket(cTokenaddress);
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);
@@ -181,6 +189,7 @@ contract PensionServiceProvider {
 
 		uint result = cToken.mint(underlyingAmount);
 		require(result == 0, 'cToken#mint() failed. see Compound ErrorReporter.sol');
+        return result;
 	}
 
 
@@ -230,58 +239,52 @@ contract PensionServiceProvider {
 
 
 
-    function withdraw() public {
+    function withdraw() public nonReentrant() {
         require(isRegistered[msg.sender], "Caller not registered");
+        User storage user = pensionServiceApplicant[msg.sender];
+        uint amountToSend = user.client.depositedAmount;
+        CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
+        address underlyingAsset = cToken.underlying();
+        IERC20(underlyingAsset).transfer(msg.sender, amountToSend);
+        user.client.depositedAmount = 0;
+        user.client.userLastRewardBlock = block.number;
+        ccInterest = ccInterest.add(block.number).div(1e8);
+        emit Withdraw(address(this), msg.sender, amountToSend);
 
-        // Point to the User in memory
-        User memory user = pensionServiceApplicant[msg.sender];
-        // require(user.client.depositedAmount > 0, "Insufficient Balance");
-        // require(user.client.hasPlan, "Caller has no plan");
 
-        if(block.timestamp < user.client.lockTime) {
-            // require(user.client.depositedAmount > 0, "insufficient balance");
-            CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
-            address underlyingAsset = cToken.underlying();
-            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
-            uint balance = IERC20(underlyingAsset).balanceOf(address(this));
-            require(balance == user.client.depositedAmount, 'Balance too low');
-            // isRegistered[msg.sender] = false;
-            uint amountToSend = user.client.depositedAmount.div(2);
-            IERC20(underlyingAsset).transfer(user.userAddress, amountToSend);
-            user.client.depositedAmount = 0;
-            user.client.userLastRewardBlock = block.number;
-            ccInterest = ccInterest.add(block.number).div(1e8);
-            emit Withdraw(address(this), msg.sender, amountToSend);
+    }
+
+
+    function redeemCErc20Tokens(
+        uint256 amount,
+        bool redeemType,
+        address _cErc20Contract
+    ) public returns (bool) {
+        // Create a reference to the corresponding cToken contract, like cDAI
+        CTokenInterface cToken = CTokenInterface(_cErc20Contract);
+
+        // `amount` is scaled up, see decimal table here:
+        // https://compound.finance/docs#protocol-math
+
+        uint256 redeemResult;
+
+        if (redeemType == true) {
+            // Retrieve your asset based on a cToken amount
+            redeemResult = cToken.redeem(amount);
         } else {
-            CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
-            address underlyingAsset = cToken.underlying();
-            _redeem(user.client.underlyingAsset, user.client.depositedAmount);
-            uint balance = IERC20(underlyingAsset).balanceOf(address(this));
-            require(balance == user.client.depositedAmount, 'Balance too low');
-            // isRegistered[msg.sender] = false;
-            uint amountToSend = user.client.depositedAmount;
-            IERC20(underlyingAsset).transfer(user.userAddress, user.client.depositedAmount);
-            user.client.depositedAmount = 0;
-            user.client.userLastRewardBlock = block.number;
-
-            emit Withdraw(address(this), msg.sender, amountToSend);
+            // Retrieve your asset based on an amount of the asset
+            redeemResult = cToken.redeemUnderlying(amount);
         }
 
-//         // require(block.timestamp > user.lockTime, "Early withdrawal will cost you 50% of your initial deposit");
+        // Error codes are listed here:
+        // https://compound.finance/docs/ctokens#error-codes
+        emit MyLog("If this is not 0, there was an error", redeemResult);
 
-
-}
-
-
-    function _redeem(address cTokenaddress, uint tokenAmount) internal {
-        require(tokenAmount > 0, 'Amount cannot be 0');
-		CTokenInterface cToken = CTokenInterface(cTokenaddress);
-		uint result = cToken.redeemUnderlying(tokenAmount);
-		require(result == 0, 'cToken#redeem() failed. see Compound ErrorReporter.sol');
-	}
+        return true;
+    }
 
     // helper function for testing keepers
-    function updateTimeDurationOfDeposit() public  {
+    function updateTimeDurationOfDeposit() public onlyOwner()  {
         User memory user = pensionServiceApplicant[msg.sender];
         require(isRegistered[user.userAddress], "Caller is not registered");
         user.client.timeDurationOfdeposit = 0;
@@ -328,7 +331,9 @@ contract PensionServiceProvider {
 
     function depositToXendFinance(uint _amount) public  {
         // require(isRegistered[msg.sender], "Caller not Registered");
-        User memory user = pensionServiceApplicant[msg.sender];
+        User storage user = pensionServiceApplicant[msg.sender];
+        busd.transferFrom(msg.sender, address(this), _amount);
+        busd.approve(address(xendFinance), _amount);
         xendFinance.deposit();
         user.client.depositedAmount = user.client.depositedAmount.add(_amount);
 
@@ -338,7 +343,7 @@ contract PensionServiceProvider {
 
 
 
-    function withdrawFromXendFinance() public {
+    function withdrawFromXendFinance() public nonReentrant() {
         require(isRegistered[msg.sender], "Caller not Registered");
         User memory user = pensionServiceApplicant[msg.sender];
         xendFinance.withdraw(user.client.depositedAmount);

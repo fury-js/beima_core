@@ -81,6 +81,8 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
     event MyLog(string, uint256);
 
     mapping(address => User) public pensionServiceApplicant;
+    address constant ETHER = address(0); // Stores ether in the tokens mapping
+	mapping(address => mapping(address => uint256)) public assets;
 
     // keep track of registered users
     mapping(address => bool) public isRegistered;
@@ -145,26 +147,28 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
 
 
-    function deposit(address _asset ,uint256 _amount) public nonReentrant() payable {
-        require(isRegistered[msg.sender], "Caller is not Registered");
-        User storage user = pensionServiceApplicant[msg.sender];
-        CTokenInterface cToken = CTokenInterface(_asset);
-		address underlyingAsset = cToken.underlying();
-        IERC20(underlyingAsset).transferFrom(msg.sender, address(this), _amount);
-        uint balance = IERC20(underlyingAsset).balanceOf(address(this));
-        require(balance >= _amount, "Transfer failed");
-        address cTokenaddress = user.client.underlyingAsset;
-        user.client.depositedAmount = user.client.depositedAmount.add(_amount);
-        user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(user.client.amountToSpend);
-        user.client.startTime = block.timestamp;
-        user.client.userLastRewardBlock = user.client.userLastRewardBlock.add(block.number);
-        ccInterest = ccInterest.mul(block.number);
-        lastTimeStamp = block.timestamp;
-        _supply(_asset, _amount);
-        // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
-        emit Deposit(address(this), underlyingAsset, _amount);
+    // function depositToBeima(address _asset ,uint256 _amount) external payable nonReentrant()  {
+    //     IERC20(_asset).transfer(address(this), _amount);
+    //     require(isRegistered[msg.sender], "Caller is not Registered");
+    //     // require(_amount > 0, "Amount cannot be 0");
+    //     User storage user = pensionServiceApplicant[msg.sender];
+    //     // require(IERC20(cToken.underlying()).balanceOf(address(this)) >= _amount, "Transfer failed");
+    //     user.client.depositedAmount = user.client.depositedAmount.add(_amount);
+    //     user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(user.client.amountToSpend);
+    //     user.client.startTime = block.timestamp;
+    //     user.client.userLastRewardBlock = user.client.userLastRewardBlock.add(block.number);
+    //     lastTimeStamp = block.timestamp;
+    //     // _supply(_asset, _amount);
+    //     emit Deposit(address(this), _asset, _amount);
 
-    }
+    // }
+
+    function depositToken (address _asset, uint _amount)public{
+		require(_asset != ETHER);
+		require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount));
+		assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
+		emit Deposit (msg.sender, _asset, assets[_asset][msg.sender]);
+	}
 
 
 
@@ -180,7 +184,7 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
 
 
-    function _supply(address cTokenaddress, uint underlyingAmount) internal returns(uint) {
+    function supply(address cTokenaddress, uint underlyingAmount) external returns(uint) {
         require(underlyingAmount > 0, "Amount Cannot be 0");
         // _enterMarket(cTokenaddress);
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);

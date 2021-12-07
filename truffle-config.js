@@ -78,13 +78,12 @@ module.exports = {
 		},
 
 		rinkeby: {
-			provider: new HDWalletProvider(
-				process.env.MNEMONIC,
-				process.env.INFURA_WEBSOCKET,
-			),
-			network_id: 4,
-			gas: 4500000,
-			gasPrice: 10000000000,
+		provider: new HDWalletProvider(process.env.MNEMONIC, process.env.INFURA_WEBSOCKET_RINKEBY),
+		network_id: 4,
+		networkCheckTimeout: 2000000,
+		timeoutBlocks: 200,
+		gas: 4500000,
+		gasPrice: 10000000000,
 		},
 		// Another network with more advanced options...
 		// advanced: {

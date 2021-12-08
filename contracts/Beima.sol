@@ -79,7 +79,7 @@ contract Beima{
     mapping(address => User) public pensionServiceApplicant;
     address constant ETHER = address(0); // Stores ether in the tokens mapping
 	mapping(address => mapping(address => uint256)) public assets;
-    mapping(address => uint) => amountSupplied;
+    mapping(address => uint) public amountSupplied;
 
     // keep track of registered users
     mapping(address => bool) public isRegistered;

@@ -79,6 +79,7 @@ contract Beima{
     mapping(address => User) public pensionServiceApplicant;
     address constant ETHER = address(0); // Stores ether in the tokens mapping
 	mapping(address => mapping(address => uint256)) public assets;
+    mapping(address => uint) => amountSupplied;
 
     // keep track of registered users
     mapping(address => bool) public isRegistered;
@@ -149,6 +150,7 @@ contract Beima{
 		require(_asset != ETHER, "Address is invalid");
 		require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount), "Deposit has failed");
 		assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
+        amountSupplied[msg.sender] = amountSupplied[msg.sender].add(_amount);
 		emit Deposit (msg.sender, _asset, assets[_asset][msg.sender]);
 	}
 
@@ -170,6 +172,7 @@ contract Beima{
 		IERC20(underlyingAddress).approve(cTokenaddress, underlyingAmount);
 
 		uint result = cToken.mint(underlyingAmount);
+        amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(underlyingAmount);
 		require(result == 0, 'cToken#mint() failed. see Compound ErrorReporter.sol');
         return result;
 	}

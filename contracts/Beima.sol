@@ -4,6 +4,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import './CTokenInterface.sol';
 import './ComptrollerInterface.sol';
@@ -12,7 +15,7 @@ import "./XendFinanceInterface.sol";
 
 
 
-contract Beima{
+contract Beima is ReentrancyGuard, Pausable, Ownable{
     using SafeMath for uint;
     using Counters for Counters.Counter;
 
@@ -161,7 +164,7 @@ contract Beima{
 
 
 
-    function withdrawToken(address _asset, uint _amount) public {
+    function withdrawToken(address _asset, uint _amount) public nonReentrant() whenNotPaused() {
         require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
 		require(assets[_asset][msg.sender] >= _amount);
 		require(_asset != ETHER);
@@ -222,7 +225,7 @@ contract Beima{
     function redeemCErc20Tokens(
         uint256 amount,
         address _cErc20Contract
-    ) public returns (bool) {
+    ) public nonReentrant() returns (bool) {
         require(isRegistered[msg.sender], "Caller not registered");
         if(amountSupplied[msg.sender] > 0) {
             uint amountToRedeem = amount.sub(amountSupplied[msg.sender]);

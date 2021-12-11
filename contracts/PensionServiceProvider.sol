@@ -163,38 +163,7 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
     // }
 
-    function depositToken (address _asset, uint _amount)public{
-		require(_asset != ETHER);
-		require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount));
-		assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
-		emit Deposit (msg.sender, _asset, assets[_asset][msg.sender]);
-	}
 
-
-
-//     function _enterMarket(address _cTokenaddress) internal {
-// 		address[] memory markets = new address[](1);
-// 		markets[0] = _cTokenaddress;
-// 		uint[] memory results = comptroller.enterMarkets(markets);
-// 		require( results[0] == 0, 'comptroller#enterMarkets() failed. see Compound ErrorReporter.sol');
-// 	}
-
-
-
-
-
-
-    function supply(address cTokenaddress, uint underlyingAmount) public returns(uint) {
-        require(underlyingAmount > 0, "Amount Cannot be 0");
-        // _enterMarket(cTokenaddress);
-		CTokenInterface cToken = CTokenInterface(cTokenaddress);
-		address underlyingAddress = cToken.underlying();
-		IERC20(underlyingAddress).approve(cTokenaddress, underlyingAmount);
-
-		uint result = cToken.mint(underlyingAmount);
-		require(result == 0, 'cToken#mint() failed. see Compound ErrorReporter.sol');
-        return result;
-	}
 
 
 //     // chainlink keeper function call
@@ -243,49 +212,10 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
 
 
-    function withdraw() public nonReentrant() {
-        require(isRegistered[msg.sender], "Caller not registered");
-        User storage user = pensionServiceApplicant[msg.sender];
-        uint amountToSend = user.client.depositedAmount;
-        CTokenInterface cToken = CTokenInterface(user.client.underlyingAsset);
-        address underlyingAsset = cToken.underlying();
-        IERC20(underlyingAsset).transfer(msg.sender, amountToSend);
-        user.client.depositedAmount = 0;
-        user.client.userLastRewardBlock = block.number;
-        ccInterest = ccInterest.add(block.number).div(1e8);
-        emit Withdraw(address(this), msg.sender, amountToSend);
+ 
 
 
-    }
 
-
-    function redeemCErc20Tokens(
-        uint256 amount,
-        bool redeemType,
-        address _cErc20Contract
-    ) public returns (bool) {
-        // Create a reference to the corresponding cToken contract, like cDAI
-        CTokenInterface cToken = CTokenInterface(_cErc20Contract);
-
-        // `amount` is scaled up, see decimal table here:
-        // https://compound.finance/docs#protocol-math
-
-        uint256 redeemResult;
-
-        if (redeemType == true) {
-            // Retrieve your asset based on a cToken amount
-            redeemResult = cToken.redeem(amount);
-        } else {
-            // Retrieve your asset based on an amount of the asset
-            redeemResult = cToken.redeemUnderlying(amount);
-        }
-
-        // Error codes are listed here:
-        // https://compound.finance/docs/ctokens#error-codes
-        emit MyLog("If this is not 0, there was an error", redeemResult);
-
-        return true;
-    }
 
     // helper function for testing keepers
     function updateTimeDurationOfDeposit() public onlyOwner()  {

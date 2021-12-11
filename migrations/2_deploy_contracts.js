@@ -21,9 +21,9 @@ module.exports = async function (deployer, network, accounts) {
         await deployer.deploy(
 					Beima,
 					xend,
-					comptrollerAddressRinkeby,
-					comptrollerAddressRinkeby,
-					priceOracleAddressRinkeby,
+					comptrollerAddressMainnet,
+					comptrollerAddressMainnet,
+					priceOracleAddressMainnet,
 					upkeepInterval,
 				);
         const pensionContract = await Beima.deployed()

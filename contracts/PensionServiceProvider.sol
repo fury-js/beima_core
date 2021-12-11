@@ -184,7 +184,7 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
 
 
-    function supply(address cTokenaddress, uint underlyingAmount) external returns(uint) {
+    function supply(address cTokenaddress, uint underlyingAmount) public returns(uint) {
         require(underlyingAmount > 0, "Amount Cannot be 0");
         // _enterMarket(cTokenaddress);
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);

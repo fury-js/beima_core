@@ -74,6 +74,7 @@ contract Beima{
     event Plan(address user, string planDetails, uint lockTime);
     event Update(uint256 timeDuration);
     event Transfer(address indexed sender, uint amount, address indexed receiver);
+    event Supply(address sender, uint amount);
     event MyLog(string, uint256);
 
     mapping(address => User) public pensionServiceApplicant;
@@ -105,6 +106,8 @@ contract Beima{
     receive() external payable {
         balance = msg.value;
     }
+
+
 
     function register(
         string memory _userDetails
@@ -143,6 +146,7 @@ contract Beima{
         emit Register(msg.sender, _userDetails);
     }
 
+
     function depositToken (address _asset, uint _amount)public {
         User memory user = pensionServiceApplicant[msg.sender];
         require(isRegistered[msg.sender], "Caller not registered");
@@ -151,59 +155,114 @@ contract Beima{
 		require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount), "Deposit has failed");
 		assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
         amountSupplied[msg.sender] = amountSupplied[msg.sender].add(_amount);
-		emit Deposit (msg.sender, _asset, assets[_asset][msg.sender]);
+        ccInterest = ccInterest.add(1);
+		emit Deposit (msg.sender, address(this), assets[_asset][msg.sender]);
 	}
 
-    function withdrawToken (address _asset, uint _amount) public {
-        require(hasRedeemed[msg.sender], "Redeem funds before withdrawal");
+
+
+    function withdrawToken(address _asset, uint _amount) public {
+        require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
 		require(assets[_asset][msg.sender] >= _amount);
 		require(_asset != ETHER);
+        require(_amount > 0, "Amount cannot nbe 0");
+        // uint interestAccrued = 
+        // uint amountToSend = assets[_asset][msg.sender];
 		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
-		require(IERC20(_asset).transfer(msg.sender, _amount));
-		emit Withdraw(address(this), msg.sender, assets[_asset][msg.sender]);
+        if(amountSupplied[msg.sender] > 0 ) {
+            amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);   
+            require(IERC20(_asset).transfer(msg.sender, _amount));
+            emit Withdraw(address(this), msg.sender, _amount);
+        } else {
+            require(IERC20(_asset).transfer(msg.sender, _amount)); 
+            emit Withdraw(address(this), msg.sender, _amount);
+        }
 
 	}
 
-    function supply(address cTokenaddress, uint underlyingAmount) external returns(uint) {
-        require(underlyingAmount > 0, "Amount Cannot be 0");
-        // _enterMarket(cTokenaddress);
+
+    function forcedWithdraw(address _asset, uint _amount) public {
+        require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
+        require(assets[_asset][msg.sender] >= _amount);
+		require(_asset != ETHER);
+		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
+        uint penalty = _amount.div(100).mul(20);
+        assets[_asset][address(this)] = assets[_asset][address(this)].add(penalty);
+        uint amountToSend;
+        if(amountSupplied[msg.sender] > 0 ) {
+            amountToSend  = _amount.sub(penalty).add(amountSupplied[msg.sender]);
+            amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);
+            require(IERC20(_asset).transfer(msg.sender, amountToSend));
+            emit Withdraw(address(this), msg.sender, amountToSend);
+        } else {
+            amountToSend  = _amount.sub(penalty);
+            require(IERC20(_asset).transfer(msg.sender, amountToSend));
+            emit Withdraw(address(this), msg.sender, amountToSend);
+
+        }
+
+    }
+
+
+    function supply(address cTokenaddress) public returns(uint) {
+        require(isRegistered[msg.sender], "Caller not registered");
+        require(amountSupplied[msg.sender] > 0, "Amount cannot be 0");
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);
 		address underlyingAddress = cToken.underlying();
-		IERC20(underlyingAddress).approve(cTokenaddress, underlyingAmount);
+		IERC20(underlyingAddress).approve(cTokenaddress, amountSupplied[msg.sender]);
 
-		uint result = cToken.mint(underlyingAmount);
-        amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(underlyingAmount);
+		uint result = cToken.mint(amountSupplied[msg.sender]);
+        amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);
 		require(result == 0, 'cToken#mint() failed. see Compound ErrorReporter.sol');
+        emit Supply(msg.sender, amountSupplied[msg.sender]);
         return result;
 	}
 
+
     function redeemCErc20Tokens(
         uint256 amount,
-        bool redeemType,
         address _cErc20Contract
     ) public returns (bool) {
-        // Create a reference to the corresponding cToken contract, like cDAI
-        CTokenInterface cToken = CTokenInterface(_cErc20Contract);
+        require(isRegistered[msg.sender], "Caller not registered");
+        if(amountSupplied[msg.sender] > 0) {
+            uint amountToRedeem = amount.sub(amountSupplied[msg.sender]);
+            // Create a reference to the corresponding cToken contract, like cDAI
+            CTokenInterface cToken = CTokenInterface(_cErc20Contract);
 
-        // `amount` is scaled up, see decimal table here:
-        // https://compound.finance/docs#protocol-math
+            // `amount` is scaled up, see decimal table here:
+            // https://compound.finance/docs#protocol-math
 
-        uint256 redeemResult;
+            uint256 redeemResult;
 
-        if (redeemType == true) {
-            // Retrieve your asset based on a cToken amount
-            redeemResult = cToken.redeem(amount);
+            // Retrieve your asset based on an amount of the asset
+            redeemResult = cToken.redeemUnderlying(amountToRedeem);
+            hasRedeemed[msg.sender] = true;
+
+            // Error codes are listed here:
+            // https://compound.finance/docs/ctokens#error-codes
+            emit MyLog("If this is not 0, there was an error", redeemResult);
+
+            return true;
         } else {
+
+            // Create a reference to the corresponding cToken contract, like cDAI
+            CTokenInterface cToken = CTokenInterface(_cErc20Contract);
+
+            // `amount` is scaled up, see decimal table here:
+            // https://compound.finance/docs#protocol-math
+
+            uint256 redeemResult;
+
             // Retrieve your asset based on an amount of the asset
             redeemResult = cToken.redeemUnderlying(amount);
             hasRedeemed[msg.sender] = true;
+
+            // Error codes are listed here:
+            // https://compound.finance/docs/ctokens#error-codes
+            emit MyLog("If this is not 0, there was an error", redeemResult);
+
+            return true;
         }
-
-        // Error codes are listed here:
-        // https://compound.finance/docs/ctokens#error-codes
-        emit MyLog("If this is not 0, there was an error", redeemResult);
-
-        return true;
     }
 
     function setPlan(
@@ -234,5 +293,14 @@ contract Beima{
         CTokenInterface cToken = CTokenInterface(ctokenAddress);
         return cToken.underlying();
 
+    }
+
+    function getAccruedInterest(address _asset) public view returns(uint) {
+        User memory user = pensionServiceApplicant[msg.sender];
+        require(isRegistered[msg.sender], "Caller not registered");
+        CTokenInterface ctoken = CTokenInterface(user.client.underlyingAsset);
+        uint supplyRatePerBlock = ctoken.supplyRatePerBlock();
+        uint accInterest = assets[_asset][msg.sender].mul(supplyRatePerBlock);
+        return accInterest;
     }
 }

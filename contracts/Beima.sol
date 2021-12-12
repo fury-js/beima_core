@@ -152,6 +152,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
 
     function depositToken (address _asset, uint _amount)public {
         User memory user = pensionServiceApplicant[msg.sender];
+        require(user.client.approvedAmountToSpend >= user.client.amountToSpend, "You have execeeded the approved amount for this plan, please make another plan");
         require(isRegistered[msg.sender], "Caller not registered");
         require(user.client.hasPlan, "Caller has no plan");
 		require(_asset != ETHER, "Address is invalid");

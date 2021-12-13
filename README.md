@@ -30,7 +30,7 @@ Type "ganache-cli --fork  YOUR-INFURA-API-LINK" --unlock  INSERT-ANY-ACCOUNT-ADD
     
 Replace the fromUnlockedAccount variable in the test folder "pension-service.js" with the unlocked account from above.
 
-Finally type truffle test in your terminal to execute on a local chain running on your machine.
+Finally type truffle test/pension-service.js in your terminal to execute on a local chain running on your machine.
 
 there you are tests passed.
 

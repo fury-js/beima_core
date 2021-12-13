@@ -170,15 +170,18 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
 		require(assets[_asset][msg.sender] >= _amount);
 		require(_asset != ETHER);
         require(_amount > 0, "Amount cannot nbe 0");
+        User memory user = pensionServiceApplicant[msg.sender];
         // uint interestAccrued = 
         // uint amountToSend = assets[_asset][msg.sender];
 		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
         if(amountSupplied[msg.sender] > 0 ) {
             amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);   
             require(IERC20(_asset).transfer(msg.sender, _amount));
+            user.client.hasPlan = false;
             emit Withdraw(address(this), msg.sender, _amount);
         } else {
-            require(IERC20(_asset).transfer(msg.sender, _amount)); 
+            require(IERC20(_asset).transfer(msg.sender, _amount));
+            user.client.hasPlan = false; 
             emit Withdraw(address(this), msg.sender, _amount);
         }
 
@@ -189,6 +192,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
         require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
         require(assets[_asset][msg.sender] >= _amount);
 		require(_asset != ETHER);
+        User memory user = pensionServiceApplicant[msg.sender];
 		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
         uint penalty = _amount.div(100).mul(20);
         assets[_asset][address(this)] = assets[_asset][address(this)].add(penalty);
@@ -197,10 +201,12 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
             amountToSend  = _amount.sub(penalty).add(amountSupplied[msg.sender]);
             amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);
             require(IERC20(_asset).transfer(msg.sender, amountToSend));
+            user.client.hasPlan = false;
             emit Withdraw(address(this), msg.sender, amountToSend);
         } else {
             amountToSend  = _amount.sub(penalty);
             require(IERC20(_asset).transfer(msg.sender, amountToSend));
+            user.client.hasPlan = false;
             emit Withdraw(address(this), msg.sender, amountToSend);
 
         }

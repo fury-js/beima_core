@@ -65,15 +65,15 @@ contract('Pension Service Provider', ([owner, applicant]) => {
 	// const account = accounts[0];
 
     const fromUnlockedAccount = {
-			from: unlockedAccount,
-			gasLimit: web3.utils.toHex(500000),
-			gasPrice: web3.utils.toHex(20000000000), // use ethgasstation.info (mainnet only)
-		};
+		from: unlockedAccount,
+		gasLimit: web3.utils.toHex(500000),
+		gasPrice: web3.utils.toHex(20000000000), // use ethgasstation.info (mainnet only)
+	};
 
 
 
 
-        beforeEach(async () => {
+    beforeEach(async () => {
 
         // load contracts
         // busd = await BUSD.new();

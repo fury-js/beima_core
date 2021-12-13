@@ -8,9 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
-import './CTokenInterface.sol';
-import './ComptrollerInterface.sol';
-import './PriceOracleInterface.sol';
 import "./XendFinanceInterface.sol";
 
 
@@ -21,8 +18,8 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
     using Counters for Counters.Counter;
 
     // variables
-    ComptrollerInterface public comptroller;
-	PriceOracleInterface public priceOracle;
+    // ComptrollerInterface public comptroller;
+	// PriceOracleInterface public priceOracle;
     Counters.Counter private id;
     uint balance;
 
@@ -34,6 +31,7 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
     uint public lastTimeStamp;
     uint public upKeepInterval;
+    address admin;
 
 
 
@@ -83,6 +81,7 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
     mapping(address => User) public pensionServiceApplicant;
     address constant ETHER = address(0); // Stores ether in the tokens mapping
 	mapping(address => mapping(address => uint256)) public assets;
+    mapping(address => uint) public amountSupplied;
 
     // keep track of registered users
     mapping(address => bool) public isRegistered;
@@ -90,14 +89,14 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
     User[] public users;
 
 
-    constructor(address _xend, address _xendFinanceIndividual_Yearn_V1,  address _comptroller, address _priceOracle, uint _upKeepInterval)  {
+    constructor(address _xend, address _busd, address _xendFinanceIndividual_Yearn_V1, uint _upKeepInterval)  {
         xend = IERC20(_xend);
-        comptroller = ComptrollerInterface(_comptroller);
-		priceOracle = PriceOracleInterface(_priceOracle);
+        busd = IERC20(_busd);
         xendFinance = XendFinanceInterface(_xendFinanceIndividual_Yearn_V1);
         ccInterest = uint256(3 ether).div(10); // .3% 
         lastTimeStamp = block.timestamp;
         upKeepInterval = _upKeepInterval;
+        admin = payable(msg.sender);
 
         id.increment();
         
@@ -253,48 +252,101 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
 //     // for Xend
 
-    function getXendPendingRewards(address _user) public view returns(uint) {
+    function getXendPendingRewards(address _user, address _asset) public view returns(uint) {
         User memory user = pensionServiceApplicant[_user];
         uint256 accXendRewards = xendFinance.GetMemberXendTokenReward(address(this));
-        uint256 userPendingRewards = user.client.depositedAmount.mul(accXendRewards).div(1e8);
+        uint256 userPendingRewards = assets[_asset][_user].mul(accXendRewards).div(1e8);
 
         return userPendingRewards;
     }
+
+    function depositToken (address _asset, uint _amount)public {
+        User memory user = pensionServiceApplicant[msg.sender];
+        require(user.client.approvedAmountToSpend >= user.client.amountToSpend, "You have execeeded the approved amount for this plan, please make another plan");
+        require(isRegistered[msg.sender], "Caller not registered");
+        require(user.client.hasPlan, "Caller has no plan");
+		require(_asset != ETHER, "Address is invalid");
+		require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount), "Deposit has failed");
+		assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
+        amountSupplied[msg.sender] = amountSupplied[msg.sender].add(_amount);
+        ccInterest = ccInterest.add(1);
+		emit Deposit (msg.sender, address(this), assets[_asset][msg.sender]);
+	}
+
 
 
 
     function depositToXendFinance(uint _amount) public  {
         // require(isRegistered[msg.sender], "Caller not Registered");
-        User storage user = pensionServiceApplicant[msg.sender];
-        busd.transferFrom(msg.sender, address(this), _amount);
-        busd.approve(address(xendFinance), _amount);
+        // User storage user = pensionServiceApplicant[msg.sender];
+        // require(busd.transferFrom(msg.sender, address(this), _amount), "Transfer not successful");
+        require(busd.approve(address(xendFinance), _amount), "Approve failed");
         xendFinance.deposit();
-        user.client.depositedAmount = user.client.depositedAmount.add(_amount);
+        // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
 
-        emit Deposit(msg.sender, address(xend), user.client.depositedAmount);
+        emit Deposit(msg.sender, address(xend), _amount);
+        
+    }
+
+    function withdrawAssetFromXend() public onlyOwner  {
+        uint amount = busd.balanceOf(address(this));
+        xendFinance.withdraw(amount);
+        require(busd.balanceOf(address(this)) >= amount, "Withdraw from Xen unsuccessful");
+        // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
+
+        emit Deposit(msg.sender, address(xend), amount);
         
     }
 
 
 
-    function withdrawFromXendFinance() public nonReentrant() {
+    function withdrawFromXendFinance(address _asset) public nonReentrant() {
         require(isRegistered[msg.sender], "Caller not Registered");
         User memory user = pensionServiceApplicant[msg.sender];
-        xendFinance.withdraw(user.client.depositedAmount);
-        uint256 xendBalance = xend.balanceOf(address(this));
-        require(xendBalance > user.client.depositedAmount, "Withdrawing more than you deposited");
-        accXendTokens = xendBalance;
-        uint256 accXendTokensforUser = user.client.depositedAmount.mul(accXendTokens).div(1e8);
-        xend.transfer(msg.sender, accXendTokensforUser);
+
+        xendFinance.withdraw(assets[_asset][msg.sender]);
+        require(IERC20(_asset).balanceOf(address(this)) >= assets[_asset][msg.sender], "Withdraw failed");
+        emit Withdraw(address(xendFinance), address(this), assets[_asset][msg.sender]);
+        // uint256 xendBalance = xend.balanceOf(address(this));
+        // require(xendBalance > user.client.depositedAmount, "Withdrawing more than you deposited");
+        // accXendTokens = xendBalance;
+        // uint256 accXendTokensforUser = user.client.depositedAmount.mul(accXendTokens).div(1e8);
+        // xend.transfer(msg.sender, accXendTokensforUser);
 
     }
 
-    function getAccruedInterest() public view returns(uint) {
+    function withdrawToken(address _asset, uint _amount) public nonReentrant() whenNotPaused() {
+		require(assets[_asset][msg.sender] >= _amount);
+		require(_asset != ETHER);
+        require(_amount > 0, "Amount cannot nbe 0");
         User memory user = pensionServiceApplicant[msg.sender];
-        require(isRegistered[user.userAddress], "Caller not registered");
-        CTokenInterface ctoken = CTokenInterface(user.client.underlyingAsset);
-        uint supplyRatePerBlock = ctoken.supplyRatePerBlock();
-        uint accInterest = user.client.depositedAmount.mul(supplyRatePerBlock).div(ccInterest).div(1e8);
-        return accInterest;
+        // uint interestAccrued = 
+        // uint amountToSend = assets[_asset][msg.sender];
+		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
+        if(amountSupplied[msg.sender] > 0 ) {
+            amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);   
+            require(IERC20(_asset).transfer(msg.sender, _amount));
+            user.client.hasPlan = false;
+            emit Withdraw(address(this), msg.sender, _amount);
+        } else {
+            require(IERC20(_asset).transfer(msg.sender, _amount));
+            user.client.hasPlan = false; 
+            emit Withdraw(address(this), msg.sender, _amount);
+        }
+
+	}
+
+    function withrawAsset() public onlyOwner {
+        uint amount = busd.balanceOf(address(this));
+        require(busd.transfer(admin, amount), "Transfer of assets back to owner failed");
     }
+
+    // function getAccruedInterest() public view returns(uint) {
+    //     User memory user = pensionServiceApplicant[msg.sender];
+    //     require(isRegistered[user.userAddress], "Caller not registered");
+    //     CTokenInterface ctoken = CTokenInterface(user.client.underlyingAsset);
+    //     uint supplyRatePerBlock = ctoken.supplyRatePerBlock();
+    //     uint accInterest = user.client.depositedAmount.mul(supplyRatePerBlock).div(ccInterest).div(1e8);
+    //     return accInterest;
+    // }
 }

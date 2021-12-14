@@ -276,12 +276,14 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
 
 
 
-    function depositToXendFinance(uint _amount) public  {
+    function depositToXendFinance( uint _amount) public  {
+        require(amountSupplied[msg.sender] > 0, "Amount cannot be 0");
         // require(isRegistered[msg.sender], "Caller not Registered");
         // User storage user = pensionServiceApplicant[msg.sender];
         // require(busd.transferFrom(msg.sender, address(this), _amount), "Transfer not successful");
         require(busd.approve(address(xendFinance), _amount), "Approve failed");
         xendFinance.deposit();
+        amountSupplied[msg.sender] = amountSupplied[msg.sender].add(_amount);
         // user.client.depositedAmount = user.client.depositedAmount.add(_amount);
 
         emit Deposit(msg.sender, address(xend), _amount);

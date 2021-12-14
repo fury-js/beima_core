@@ -24,24 +24,7 @@ module.exports = async function (deployer, network, accounts) {
 
         // await deployer.deploy(BUSD);
         // const busd = await BUSD.deployed();
-    if(network == 56) {
-      await deployer.deploy(
-			PensionServiceProvider,
-			xendTokenBsc,
-			busdAddress,
-			xendIndiviualSavingsContract,
-			upkeepInterval,
-    );
-		const pensionServiceContract = await PensionServiceProvider.deployed();
-		console.log('Pension Service deployed at:',PensionServiceProvider.address,);
-
-    } else if (network == 97) {
-            
-      await deployer.deploy(PensionServiceProvider, xendTokenBsc, busdAddressTesnet, xendIndiviualSavingsContractTestnet, upkeepInterval )
-      const pensionServiceContract = await PensionServiceProvider.deployed()
-      console.log("Pension Service deployed at:", PensionServiceProvider.address)
-          
-    } else if(network == 4 ) {
+      if(network == "4") {
         await deployer.deploy(
           Beima,
           xend,
@@ -51,17 +34,12 @@ module.exports = async function (deployer, network, accounts) {
           upkeepInterval,
         );
         const pensionContract = await Beima.deployed();
-            
-      } else {
-          await deployer.deploy(
-            Beima,
-            xend,
-            comptrollerAddressMainnet,
-            comptrollerAddressMainnet,
-            priceOracleAddressMainnet,
-            upkeepInterval,
-          );
-          const pensionContract = await Beima.deployed()
+      }
+      
+      else {
+        await deployer.deploy(PensionServiceProvider, xendTokenBsc, busdAddressTesnet, xendIndiviualSavingsContractTestnet, upkeepInterval )
+        const pensionServiceContract = await PensionServiceProvider.deployed()
+        console.log("Pension Service deployed at:", PensionServiceProvider.address)
       }
 
         // console.log(pensionContract)

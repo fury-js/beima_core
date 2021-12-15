@@ -30,6 +30,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
     XendFinanceInterface public xendFinance;
     IERC20 public xend;
     IERC20 public busd;
+    address public admin;
 
     uint public lastTimeStamp;
     uint public upKeepInterval;
@@ -78,12 +79,13 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
     event Update(uint256 timeDuration);
     event Transfer(address indexed sender, uint amount, address indexed receiver);
     event Supply(address sender, uint amount);
-    event MyLog(string, uint256);
+    event Redeem(string, uint256);
 
     mapping(address => User) public pensionServiceApplicant;
     address constant ETHER = address(0); // Stores ether in the tokens mapping
 	mapping(address => mapping(address => uint256)) public assets;
-    mapping(address => uint) public amountSupplied;
+    mapping(address => uint) public unsuppliedAmount;
+    mapping(address => uint) public stakedBalance;
 
     // keep track of registered users
     mapping(address => bool) public isRegistered;
@@ -100,6 +102,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
         ccInterest = uint256(3 ether).div(10); // .3% 
         lastTimeStamp = block.timestamp;
         upKeepInterval = _upKeepInterval;
+        admin = msg.sender;
 
         id.increment();
         
@@ -151,62 +154,71 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
 
 
     function depositToken (address _asset, uint _amount)public {
-        User memory user = pensionServiceApplicant[msg.sender];
+        User storage user = pensionServiceApplicant[msg.sender];
         require(user.client.approvedAmountToSpend >= user.client.amountToSpend, "You have execeeded the approved amount for this plan, please make another plan");
         require(isRegistered[msg.sender], "Caller not registered");
         require(user.client.hasPlan, "Caller has no plan");
 		require(_asset != ETHER, "Address is invalid");
 		require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount), "Deposit has failed");
 		assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
-        amountSupplied[msg.sender] = amountSupplied[msg.sender].add(_amount);
+        unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].add(_amount);
+        user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(_amount);
         ccInterest = ccInterest.add(1);
 		emit Deposit (msg.sender, address(this), assets[_asset][msg.sender]);
 	}
 
 
 
-    function withdrawToken(address _asset, uint _amount) public nonReentrant() whenNotPaused() {
-        require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
-		require(assets[_asset][msg.sender] >= _amount);
+    function withdrawToken(address _asset) public nonReentrant() whenNotPaused() {
+        // require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
+		require(assets[_asset][msg.sender] > 0, "You have no funds available to withdraw");
 		require(_asset != ETHER);
-        require(_amount > 0, "Amount cannot nbe 0");
-        User memory user = pensionServiceApplicant[msg.sender];
+        User storage user = pensionServiceApplicant[msg.sender];
+        require(block.timestamp > user.client.lockTime, "Unable to withdraw before your locktime expires");
         // uint interestAccrued = 
         // uint amountToSend = assets[_asset][msg.sender];
-		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
-        if(amountSupplied[msg.sender] > 0 ) {
-            amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);   
-            require(IERC20(_asset).transfer(msg.sender, _amount));
+        if(unsuppliedAmount[msg.sender] > 0 ) {
+            require(IERC20(_asset).transfer(msg.sender, unsuppliedAmount[msg.sender]));
+            uint amountToSend = assets[_asset][msg.sender].sub(unsuppliedAmount[msg.sender]);
+            unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].sub(unsuppliedAmount[msg.sender]);   
+		    assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(assets[_asset][msg.sender]);
+            require(IERC20(_asset).transfer(msg.sender, amountToSend));
             user.client.hasPlan = false;
-            emit Withdraw(address(this), msg.sender, _amount);
+            user.client.lockTime = 0;
+            emit Withdraw(address(this), msg.sender, amountToSend);
         } else {
-            require(IERC20(_asset).transfer(msg.sender, _amount));
+            require(IERC20(_asset).transfer(msg.sender, assets[_asset][msg.sender]));
             user.client.hasPlan = false; 
-            emit Withdraw(address(this), msg.sender, _amount);
+            user.client.lockTime = 0;
+            emit Withdraw(address(this), msg.sender, assets[_asset][msg.sender]);
         }
 
 	}
 
 
-    function forcedWithdraw(address _asset, uint _amount) public {
-        require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
-        require(assets[_asset][msg.sender] >= _amount);
+    function forcedWithdraw(address _asset) public {
+        // require(hasRedeemed[msg.sender], "Funds need to be redeemed before withdraw");
+        require(assets[_asset][msg.sender] >= 0, "You cannot withdraw 0 amount");
 		require(_asset != ETHER);
-        User memory user = pensionServiceApplicant[msg.sender];
-		assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(_amount);
-        uint penalty = _amount.div(100).mul(20);
+        User storage user = pensionServiceApplicant[msg.sender];
+        		
+        uint penalty = assets[_asset][msg.sender].div(100).mul(20);
         assets[_asset][address(this)] = assets[_asset][address(this)].add(penalty);
         uint amountToSend;
-        if(amountSupplied[msg.sender] > 0 ) {
-            amountToSend  = _amount.sub(penalty).add(amountSupplied[msg.sender]);
-            amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);
+        if(unsuppliedAmount[msg.sender] > 0 ) {
+            amountToSend  = assets[_asset][msg.sender].sub(penalty).add(unsuppliedAmount[msg.sender]);
+            unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].sub(unsuppliedAmount[msg.sender]);
+            assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(assets[_asset][msg.sender]);
             require(IERC20(_asset).transfer(msg.sender, amountToSend));
             user.client.hasPlan = false;
+            user.client.lockTime = 0;
             emit Withdraw(address(this), msg.sender, amountToSend);
         } else {
-            amountToSend  = _amount.sub(penalty);
+            amountToSend  = assets[_asset][msg.sender].sub(penalty);
+            assets[_asset][msg.sender] = assets[_asset][msg.sender].sub(assets[_asset][msg.sender]);
             require(IERC20(_asset).transfer(msg.sender, amountToSend));
             user.client.hasPlan = false;
+            user.client.lockTime = 0;
             emit Withdraw(address(this), msg.sender, amountToSend);
 
         }
@@ -216,63 +228,38 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
 
     function supply(address cTokenaddress) public returns(uint) {
         require(isRegistered[msg.sender], "Caller not registered");
-        require(amountSupplied[msg.sender] > 0, "Amount cannot be 0");
+        require(unsuppliedAmount[msg.sender] > 0, "Amount cannot be 0");
 		CTokenInterface cToken = CTokenInterface(cTokenaddress);
 		address underlyingAddress = cToken.underlying();
-		IERC20(underlyingAddress).approve(cTokenaddress, amountSupplied[msg.sender]);
+		IERC20(underlyingAddress).approve(cTokenaddress, unsuppliedAmount[msg.sender]);
 
-		uint result = cToken.mint(amountSupplied[msg.sender]);
-        amountSupplied[msg.sender] = amountSupplied[msg.sender].sub(amountSupplied[msg.sender]);
+		uint result = cToken.mint(unsuppliedAmount[msg.sender]);
+        stakedBalance[msg.sender] = stakedBalance[msg.sender].add(unsuppliedAmount[msg.sender]);
+        unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].sub(unsuppliedAmount[msg.sender]);
 		require(result == 0, 'cToken#mint() failed. see Compound ErrorReporter.sol');
-        emit Supply(msg.sender, amountSupplied[msg.sender]);
+        emit Supply(msg.sender, stakedBalance[msg.sender]);
         return result;
 	}
 
 
     function redeemCErc20Tokens(
-        uint256 amount,
         address _cErc20Contract
     ) public nonReentrant() returns (bool) {
         require(isRegistered[msg.sender], "Caller not registered");
-        if(amountSupplied[msg.sender] > 0) {
-            uint amountToRedeem = amount.sub(amountSupplied[msg.sender]);
-            // Create a reference to the corresponding cToken contract, like cDAI
-            CTokenInterface cToken = CTokenInterface(_cErc20Contract);
+        require(stakedBalance[msg.sender] > 0, "Caller has not supplied funds");
+        User memory user = pensionServiceApplicant[msg.sender];
+        require(block.timestamp > user.client.lockTime, "Unable to withdraw before your locktime expires");
+      
+        CTokenInterface cToken = CTokenInterface(_cErc20Contract);
+        uint256 redeemResult;
 
-            // `amount` is scaled up, see decimal table here:
-            // https://compound.finance/docs#protocol-math
+        redeemResult = cToken.redeemUnderlying(stakedBalance[msg.sender]);
+        hasRedeemed[msg.sender] = true;
+        stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(stakedBalance[msg.sender]);
 
-            uint256 redeemResult;
+        emit Redeem("If this is not 0, there was an error", redeemResult);
 
-            // Retrieve your asset based on an amount of the asset
-            redeemResult = cToken.redeemUnderlying(amountToRedeem);
-            hasRedeemed[msg.sender] = true;
-
-            // Error codes are listed here:
-            // https://compound.finance/docs/ctokens#error-codes
-            emit MyLog("If this is not 0, there was an error", redeemResult);
-
-            return true;
-        } else {
-
-            // Create a reference to the corresponding cToken contract, like cDAI
-            CTokenInterface cToken = CTokenInterface(_cErc20Contract);
-
-            // `amount` is scaled up, see decimal table here:
-            // https://compound.finance/docs#protocol-math
-
-            uint256 redeemResult;
-
-            // Retrieve your asset based on an amount of the asset
-            redeemResult = cToken.redeemUnderlying(amount);
-            hasRedeemed[msg.sender] = true;
-
-            // Error codes are listed here:
-            // https://compound.finance/docs/ctokens#error-codes
-            emit MyLog("If this is not 0, there was an error", redeemResult);
-
-            return true;
-        }
+        return true;
     }
 
     function setPlan(
@@ -289,7 +276,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
         User storage user = pensionServiceApplicant[msg.sender];
         require(user.client.lockTime == 0, "Caller already has a lock Time Set");
         user.client.underlyingAsset = _underlyingAsset;
-        user.client.lockTime = _lockTime;
+        user.client.lockTime = block.timestamp.add(_lockTime);
         user.client.timeDurationOfdeposit = block.timestamp.add(_timeDurationOfDeposit);
         user.client.ipfsHashOfUserPensionDetails = _ipfsHashOfUserPensionDetails;
         user.client.approvedAmountToSpend = _approvedAmountToSpend;
@@ -313,4 +300,18 @@ contract Beima is ReentrancyGuard, Pausable, Ownable{
         uint accInterest = assets[_asset][msg.sender].mul(supplyRatePerBlock);
         return accInterest;
     }
+
+    function withdrawPenalty(address _asset) public onlyOwner() {
+        require(assets[_asset][address(this)] > 0, "Cannot withdraw 0 amount");
+        require(IERC20(_asset).transfer(admin, assets[_asset][address(this)]));
+    }
+
+    // helper function to be deleted on migration to mainet
+    function updateLockTime() public {
+        require(isRegistered[msg.sender], "caller is not registered");
+        User storage user = pensionServiceApplicant[msg.sender];
+        user.client.lockTime = 0;
+    }
+
+
 }

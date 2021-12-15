@@ -24,7 +24,7 @@ module.exports = async function (deployer, network, accounts) {
 
         // await deployer.deploy(BUSD);
         // const busd = await BUSD.deployed();
-      if(network == "4") {
+      if(network == "4" || network == "1") {
         await deployer.deploy(
           Beima,
           xend,

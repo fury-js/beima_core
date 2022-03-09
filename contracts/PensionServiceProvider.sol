@@ -33,6 +33,8 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
     uint public upKeepInterval;
     address admin;
 
+    mapping(address => uint256) public stakedBalance;
+
 
 
     
@@ -285,7 +287,7 @@ contract PensionServiceProvider is ReentrancyGuard, Pausable, Ownable {
         stakedBalance[msg.sender] = stakedBalance[msg.sender].add(unsuppliedAmount[msg.sender]);
         unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].sub(unsuppliedAmount[msg.sender]);
 
-        emit Deposit(msg.sender, address(xend), _amount);
+        emit Deposit(msg.sender, address(xend), stakedBalance[msg.sender]);
         
     }
 

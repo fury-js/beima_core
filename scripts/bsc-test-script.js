@@ -44950,19 +44950,19 @@ module.exports = async (callback) => {
 		let pensionPlanDetails = "Flexible";
 		let userDetails = 'chukky';
 		let nextOfKinDetails = "chukky"
-        // let amountToSpend =  100000;
+    // let amountToSpend =  100000;
 		// let approvedAmountToSpend =  1000;
 		let amountToSpend = web3.utils.toWei("1", 'ether');  // 1 usdc tokens
     let approvedAmountToSpend = web3.utils.toWei('100', 'ether');
 		let lockTime = 0;
 		let timeDuration = 50;
 
-        //fetch accounts from wallet- these are unlocked
+    //fetch accounts from wallet- these are unlocked
 		const accounts = await web3.eth.getAccounts();
 		const account = accounts[1]
 		console.log(account)
 
-        const fromMyWallet = {
+    const fromMyWallet = {
 			from: account,
 			gasLimit: web3.utils.toHex(500000),
 			gasPrice: web3.utils.toHex(20000000000) // use ethgasstation.info (mainnet only)
@@ -44982,19 +44982,19 @@ module.exports = async (callback) => {
 		// 	lockTime,
 		// ).send({from: account});
 
-        // await busdTokenContractTestnet.methods.approve(pensionContractAddress, amountToSpend).send(fromMyWallet)
+    // await busdTokenContractTestnet.methods.approve(pensionContractAddress, amountToSpend).send(fromMyWallet)
 
-        // let balance = await busdTokenContractTestnet.methods.balanceOf(account).call()
-		    // console.log("busd balance of user before deposit:", balance.toString())
+    let balance = await busdTokenContractTestnet.methods.balanceOf(account).call()
+		console.log("busd balance of user before deposit:", balance.toString())
 
 
-        // result = await contract.methods.depositToken(busdAddressTesnet, amountToSpend).send(fromMyWallet)
-        // console.log(result)
+    result = await contract.methods.depositToken(busdAddressTesnet, amountToSpend).send(fromMyWallet)
+    // console.log(result)
 
 		// result = await contract.methods.depositToXendFinance( amountToSpend).send({from: account})
     // console.log(result)
 
-    result = await contract.methods.withrawAsset().send({from: accounts[0]})
+    result = await contract.methods.withrawAssetFromXend().send({from: accounts[0]})
     console.log(result)
 
     // balanceAfter = await busdTokenContractTestnet.methods.balanceOf(account).call()

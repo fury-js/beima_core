@@ -18,6 +18,13 @@ module.exports = {
 			networkCheckTimeout: 1000000,
 			timeoutBlocks: 200,
 		},
+		mumbai: {
+			provider: () => new HDWalletProvider(process.env.MNEMONIC, `https://rpc-mumbai.maticvigil.com`),
+			network_id: 80001,
+			confirmations: 2,
+			timeoutBlocks: 200,
+			skipDryRun: true
+    	},
 		// kovan: {
 		// 	provider: () => {
 		// 		return new HDWalletProvider(
@@ -45,17 +52,15 @@ module.exports = {
 		// 	gasPrice: 20000000000,
 		// },
 
-		// rinkeby: {
-		// 	provider: new HDWalletProvider(
-		// 		process.env.MNEMONIC,
-		// 		process.env.INFURA_API_RINKEBY,
-		// 	),
-		// 	network_id: 4,
-		// 	networkCheckTimeout: 2000000,
-		// 	timeoutBlocks: 200,
-		// 	gas: 4500000,
-		// 	gasPrice: 10000000000,
-		// },
+		rinkeby: {
+			provider: new HDWalletProvider(
+				process.env.MNEMONIC,
+				process.env.INFURA_API_RINKEBY,
+			),
+			network_id: 4,
+			gas: 4500000,
+      		gasPrice: 10000000000,
+		},
 	},
 
 	// Set default mocha options here, use special reporters etc.
@@ -68,14 +73,14 @@ module.exports = {
 		solc: {
 			version: '0.8.0', // Fetch exact version from solc-bin (default: truffle's version)
 			// docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-			// settings: {
-			// 	// See the solidity docs for advice about optimization and evmVersion
-			// 	// optimizer: {
-			// 	// 	enabled: false,
-			// 	// 	runs: 200,
-			// 	// },
+			settings: {
+				// See the solidity docs for advice about optimization and evmVersion
+				optimizer: {
+					enabled: true,
+					runs: 200,
+				},
 			// 	//  evmVersion: "byzantium"
-			// },
+			},
 		},
 	},
 

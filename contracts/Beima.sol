@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import {DataTypes} from './libraries/DataTypes.sol';
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -8,7 +9,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./CTokenInterface.sol";
-import "./ComptrollerInterface.sol";
+import "./LendingPoolInterface.sol";
 import "./PriceOracleInterface.sol";
 import "./XendFinanceInterface.sol";
 import "./MasterPool.sol";
@@ -19,23 +20,19 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
     using Counters for Counters.Counter;
 
     // variables
-    ComptrollerInterface public comptroller;
-    PriceOracleInterface public priceOracle;
+    LendingPoolInterface public lendingPool;
     Counters.Counter private id;
     uint256 balance;
 
-    uint256 accXendTokens;
-    uint256 ccInterest;
-    XendFinanceInterface public xendFinance;
-    IERC20 public xend;
     IERC20 public busd;
     BeimaToken public beimaToken;  
     address public admin;
 
     uint256 public lastTimeStamp;
     uint256 public upKeepInterval;
-    uint256 public beimaTokenPerBlock = uint256(1 ether).div(100); //0.1
-    uint256 public totalAllocPoint = 100;
+    uint256 public beimaTokenPerBlock = 0.01 ether; //0.1
+    // uint256 public beimaTokenPerBlock = 5 ether;
+    uint256 public totalAllocPoint = 10;
 
     struct Client {
         address underlyingAsset;
@@ -103,17 +100,10 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
     PoolInfo[] public poolInfo;
 
     constructor(
-        address _xend,
-        address _xendFinanceIndividual_Yearn_V1,
-        address _comptroller,
-        address _priceOracle,
+        address _lendingPool,
         uint256 _upKeepInterval
     ) {
-        xend = IERC20(_xend);
-        comptroller = ComptrollerInterface(_comptroller);
-        priceOracle = PriceOracleInterface(_priceOracle);
-        xendFinance = XendFinanceInterface(_xendFinanceIndividual_Yearn_V1);
-        ccInterest = uint256(3 ether).div(10); // .3%
+        lendingPool = LendingPoolInterface(_lendingPool);
         lastTimeStamp = block.timestamp;
         upKeepInterval = _upKeepInterval;
         admin = msg.sender;
@@ -148,7 +138,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
 
     function initializePool(uint256 pid, uint256 startBlock) external onlyOwner {
         require(poolInfo[pid].lastRewardBlock == 0, "Staking already started");
-        poolInfo[pid].lastRewardBlock = startBlock;
+        poolInfo[pid].lastRewardBlock = block.number;
     }
 
     function register(string memory _userDetails) public {
@@ -186,7 +176,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
         emit Register(msg.sender, _userDetails);
     }
 
-    function updatePool(uint256 pid) internal {
+    function updatePool(uint256 pid) internal  {
         require(
             poolInfo[pid].lastRewardBlock > 0 &&
                 block.number >= poolInfo[pid].lastRewardBlock,
@@ -217,11 +207,12 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
         uint256 pid,
         address _asset,
         uint256 _amount
-    ) public {
+    ) public payable {
+        updatePool(pid);
         PoolInfo storage pool = poolInfo[pid];
         require(pool.lastRewardBlock != 0, "Staking Pool has not been initialize");
         User storage user = pensionServiceApplicant[msg.sender];
-        updatePool(pid);
+        
         require(
             user.client.approvedAmountToSpend >= user.client.amountToSpend,
             "You have execeeded the approved amount for this plan, please make another plan"
@@ -229,22 +220,26 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
         require(isRegistered[msg.sender], "Caller not registered");
         require(user.client.hasPlan, "Caller has no plan");
         require(_asset != ETHER, "Address is invalid");
-        require(
-            IERC20(_asset).transferFrom(msg.sender, address(this), _amount),
-            "Deposit has failed"
-        );
-        assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
-        unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].add(
-            _amount
-        );
-        pool.depositedAmount = pool.depositedAmount.add(_amount);
-        user.client.approvedAmountToSpend = user
-            .client
-            .approvedAmountToSpend
-            .sub(_amount);
-        user.rewardDebt = user.client.depositedAmount.mul(pool.accbeimaPerShare).div(1e8);
-        user.lastClaim = block.timestamp;
-        emit Deposit(msg.sender, address(this), assets[_asset][msg.sender]);
+    
+        if(user.client.depositedAmount > 0) {
+            uint256 pending = user.client.depositedAmount.mul(pool.accbeimaPerShare).div(1e8).sub(user.rewardDebt);
+            if (pending > 0) {
+                user.pendingRewards = user.pendingRewards.add(pending);
+            }
+        }
+
+        if (_amount > 0) {
+            require(IERC20(_asset).transferFrom(msg.sender, address(this), _amount),"Deposit has failed");
+            user.client.depositedAmount = user.client.depositedAmount.add(_amount);
+            pool.depositedAmount = pool.depositedAmount.add(_amount);
+            assets[_asset][msg.sender] = assets[_asset][msg.sender].add(_amount);
+            unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].add(_amount);
+            pool.depositedAmount = pool.depositedAmount.add(_amount);
+            user.client.approvedAmountToSpend = user.client.approvedAmountToSpend.sub(_amount);
+            user.rewardDebt = user.client.depositedAmount.mul(pool.accbeimaPerShare).div(1e8);
+            user.lastClaim = block.timestamp;
+            emit Deposit(msg.sender, address(this), assets[_asset][msg.sender]);
+        }
     }
 
     function withdrawToken(uint256 pid, address _asset) public nonReentrant whenNotPaused {
@@ -260,8 +255,6 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
             block.timestamp > user.client.lockTime,
             "Unable to withdraw before your locktime expires"
         );
-        // uint interestAccrued =
-        // uint amountToSend = assets[_asset][msg.sender];
         if (unsuppliedAmount[msg.sender] > 0) {
             require(
                 IERC20(_asset).transfer(
@@ -288,11 +281,7 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
             );
             user.client.hasPlan = false;
             user.client.lockTime = 0;
-            emit Withdraw(
-                address(this),
-                msg.sender,
-                assets[_asset][msg.sender]
-            );
+            emit Withdraw(address(this),msg.sender,assets[_asset][msg.sender]);
         } 
     }
 
@@ -336,57 +325,44 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
         }
     }
 
-    // function supply(address cTokenaddress) public returns (uint256) {
-    //     require(isRegistered[msg.sender], "Caller not registered");
-    //     require(unsuppliedAmount[msg.sender] > 0, "Amount cannot be 0");
-    //     CTokenInterface cToken = CTokenInterface(cTokenaddress);
-    //     address underlyingAddress = cToken.underlying();
-    //     IERC20(underlyingAddress).approve(
-    //         cTokenaddress,
-    //         unsuppliedAmount[msg.sender]
-    //     );
+    function supply() public returns (uint256) {
+        require(isRegistered[msg.sender], "Caller not registered");
+        require(unsuppliedAmount[msg.sender] > 0, "Amount cannot be 0");
+        User memory user = pensionServiceApplicant[msg.sender];
+        IERC20(user.client.underlyingAsset).approve(
+            address(lendingPool),
+            unsuppliedAmount[msg.sender]
+        );
+        uint16 referralCode = 0;
 
-    //     uint256 result = cToken.mint(unsuppliedAmount[msg.sender]);
-    //     stakedBalance[msg.sender] = stakedBalance[msg.sender].add(
-    //         unsuppliedAmount[msg.sender]
-    //     );
-    //     unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].sub(
-    //         unsuppliedAmount[msg.sender]
-    //     );
-    //     require(
-    //         result == 0,
-    //         "cToken#mint() failed. see Compound ErrorReporter.sol"
-    //     );
-    //     emit Supply(msg.sender, stakedBalance[msg.sender]);
-    //     return result;
-    // }
+        lendingPool.deposit(user.client.underlyingAsset, unsuppliedAmount[msg.sender], address(this), referralCode );
+        stakedBalance[msg.sender] = stakedBalance[msg.sender].add(unsuppliedAmount[msg.sender]);
+        unsuppliedAmount[msg.sender] = unsuppliedAmount[msg.sender].sub(unsuppliedAmount[msg.sender]);
 
-    // function redeemCErc20Tokens(address _cErc20Contract)
-    //     public
-    //     nonReentrant
-    //     returns (bool)
-    // {
-    //     require(isRegistered[msg.sender], "Caller not registered");
-    //     require(stakedBalance[msg.sender] > 0, "Caller has not supplied funds");
-    //     User memory user = pensionServiceApplicant[msg.sender];
-    //     require(
-    //         block.timestamp > user.client.lockTime,
-    //         "Unable to withdraw before your locktime expires"
-    //     );
+        emit Supply(msg.sender, stakedBalance[msg.sender]);
+    }
 
-    //     CTokenInterface cToken = CTokenInterface(_cErc20Contract);
-    //     uint256 redeemResult;
+    function withdarwFromPool()public nonReentrant returns (bool)
+    {
+        require(isRegistered[msg.sender], "Caller not registered");
+        require(stakedBalance[msg.sender] > 0, "Caller has not supplied funds");
+        User memory user = pensionServiceApplicant[msg.sender];
+        require(
+            block.timestamp > user.client.lockTime,
+            "Unable to withdraw before your locktime expires"
+        );
+        uint256 redeemResult;
 
-    //     redeemResult = cToken.redeemUnderlying(stakedBalance[msg.sender]);
-    //     hasRedeemed[msg.sender] = true;
-    //     stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(
-    //         stakedBalance[msg.sender]
-    //     );
+        uint256 withdrawAmount = lendingPool.withdraw(user.client.underlyingAsset, stakedBalance[msg.sender], address(this));
+        hasRedeemed[msg.sender] = true;
+        stakedBalance[msg.sender] = stakedBalance[msg.sender].sub(
+            stakedBalance[msg.sender]
+        );
 
-    //     emit Redeem("If this is not 0, there was an error", redeemResult);
+        emit Redeem("If this is not %s, there was an error", withdrawAmount);
 
-    //     return true;
-    // }
+        return true;
+    }
 
     function setPlan(
         address _underlyingAsset,
@@ -424,18 +400,14 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
             user.client.ipfsHashOfUserPensionDetails,
             user.client.lockTime
         );
+    } 
+
+    function getAssetAtokenAddress() public view returns (DataTypes.ReserveData memory) {
+        User memory user = pensionServiceApplicant[msg.sender];
+        return lendingPool.getReserveData(user.client.underlyingAsset);
     }
 
-    function getAssetAddress(address ctokenAddress)
-        public
-        view
-        returns (address)
-    {
-        CTokenInterface cToken = CTokenInterface(ctokenAddress);
-        return cToken.underlying();
-    }
-
-    function pendingRewards(uint256 pid, address _user) external view returns (uint256) {
+    function pendingRewards(uint256 pid) external view returns (uint256) {
         require(poolInfo[pid].lastRewardBlock > 0 && block.number >= poolInfo[pid].lastRewardBlock, 'Staking not yet started');
         PoolInfo storage pool = poolInfo[pid];
         User storage user = pensionServiceApplicant[msg.sender];
@@ -488,10 +460,10 @@ contract Beima is ReentrancyGuard, Pausable, Ownable {
     function safebeimaTokenTransfer(address to, uint256 amount, uint256 pid) internal returns (uint256) {
         PoolInfo memory pool = poolInfo[pid];
         if (amount > pool.rewardsAmount) {
-            beimaToken.transfer(to, pool.rewardsAmount);
+            beimaToken.mint(to, pool.rewardsAmount);
             return pool.rewardsAmount;
         } else {
-            beimaToken.transfer(to, amount);
+            beimaToken.mint(to, amount);
             return amount;
         }
     }

@@ -1,10 +1,15 @@
 // const BUSD = artifacts.require("mBUSD");
 const Beima = artifacts.require("Beima");
-const MockKeeper = artifacts.require("MockKeeper");
 const PensionServiceProvider = artifacts.require("PensionServiceProvider")
+const BUSD = artifacts.require("mBUSD")
+
+const wait = (seconds) => {
+	const milliseconds = seconds * 1000
+	return new Promise(resolve => setTimeout(resolve, milliseconds))
+} 
 
 module.exports = async function (deployer, network, accounts) {
-    const comptrollerAddressMainnet = "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
+    const lendingPoolAdress = '0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf';
     const priceOracleAddressMainnet = "0x02557a5e05defeffd4cae6d83ea3d173b272c904"
     // const comptrollerAddressKovan = "0x5eAe89DC1C671724A672ff0630122ee834098657"
     // const priceOracleAddressKovan = "0x37ac0cb24b5DA520B653A5D94cFF26EB08d4Dc02"
@@ -22,33 +27,31 @@ module.exports = async function (deployer, network, accounts) {
     const upkeepInterval = 30;
 
 
-        // await deployer.deploy(BUSD);
-        // const busd = await BUSD.deployed();
-      if(network == "4" || network == "1") {
-        await deployer.deploy(
-          Beima,
-          xend,
-          comptrollerAddressRinkeby,
-          comptrollerAddressRinkeby,
-          priceOracleAddressRinkeby,
-          upkeepInterval,
-        );
-        const pensionContract = await Beima.deployed();
-      }
+      await deployer.deploy(BUSD);
+      const busd = await BUSD.deployed();
+      console.log("Mock Busd deployed at:", busd.address);
+      // if(network == "4" || network == "1") {
+      await wait(5)
+      await deployer.deploy(Beima, lendingPoolAdress, upkeepInterval,);
+      const pensionContract = await Beima.deployed();
+      console.log("Beima deployed at:", pensionContract.address)
+
+
+      // }
       
-      else {
-        await deployer.deploy(PensionServiceProvider, xendTokenBsc, busdAddressTesnet, xendIndiviualSavingsContractTestnet, upkeepInterval )
-        const pensionServiceContract = await PensionServiceProvider.deployed()
-        console.log("Pension Service deployed at:", PensionServiceProvider.address)
-      }
+      // else {
+      //   await deployer.deploy(PensionServiceProvider, xendTokenBsc, busdAddressTesnet, xendIndiviualSavingsContractTestnet, upkeepInterval )
+      //   const pensionServiceContract = await PensionServiceProvider.deployed()
+      //   console.log("Pension Service deployed at:", PensionServiceProvider.address)
+      // }
 
-        // console.log(pensionContract)
-        // console.log("Mock Busd address Kovan:", BUSD.address)
-        // console.log("Pension Contract:", Beima.address)
+      // console.log(pensionContract)
+      // console.log("Mock Busd address Kovan:", BUSD.address)
+      // console.log("Pension Contract:", Beima.address)
 
-        // await deployer.deploy(MockKeeper, Beima.address)
-        // const keeper = await MockKeeper.deployed()
-        // console.log('MockKeeper Contract deployed at:', MockKeeper.address);
+      // await deployer.deploy(MockKeeper, Beima.address)
+      // const keeper = await MockKeeper.deployed()
+      // console.log('MockKeeper Contract deployed at:', MockKeeper.address);
 
 
    
